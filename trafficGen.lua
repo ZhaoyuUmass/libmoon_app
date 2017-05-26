@@ -66,7 +66,7 @@ function master(args,...)
 end
 
 function txSlave(queue, dstMac)
-  -- memory pool with default values for all packets
+  -- memory pool with default values for all packets, this is our archetype
   local mempool = memory.createMemPool(function(buf)
     buf:getUdpPacket():fill{
       -- fields not explicitly set here are initialized to reasonable defaults
@@ -83,17 +83,17 @@ function txSlave(queue, dstMac)
   local bufs = mempool:bufArray()
   while lm.running() do -- check if Ctrl+c was pressed
     -- this actually allocates some buffers from the mempool the array is associated with
-    -- this has to be repeated from each send because sending is asynchronous, we cannot reuse the old buffers here
+    -- this has to be repeated for each send because sending is asynchronous, we cannot reuse the old buffers here
     bufs:alloc(PKT_LEN)
-    for i,buf in ipairs(bufs) do
+    for i, buf in ipairs(bufs) do
       -- packet framework allows simple access to fields in complex protocol stacks
       local pkt = buf:getUdpPacket()
-      pkt.udp:setSrcPort(SRC_PORT_BASE + math.random(0, NUM_FLOWS -1))
+      pkt.udp:setSrcPort(SRC_PORT_BASE + math.random(0, NUM_FLOWS - 1))
     end
     -- UDP checksums are optional, so using just IPv4 checksums would be sufficient here
     -- UDP checksum offloading is comparatively slow: NICs typically do not support calculating the pseudo-header checksum so this is done in SW
     bufs:offloadUdpChecksums()
     -- send out all packets and frees old bufs that have been sent
-    queue.send(bufs)
+    queue:send(bufs)
   end
 end
