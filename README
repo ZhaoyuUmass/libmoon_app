@@ -1,5 +1,5 @@
 This app is a MoonGen application (a DPDK wrapper) that is used to generate packets fast enough.
 
-The pktgen.lua script is similar with the MoonGen/libmoon/examples/pktgen.lua script. It is used to generate packets at some rate with several flows.
+The trafficGen.lua script is similar with the MoonGen/libmoon/examples/pktgen.lua script. It is used to generate packets at some rate with several flows.
 
 The reflactor.lua script is exactly the same as MoonGen/libmoon/examples/reflactor.lua script. It is used to echo back the packet sent by pktgen.  
