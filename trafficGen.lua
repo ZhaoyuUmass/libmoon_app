@@ -80,8 +80,8 @@ function txSlave(queue, dstMac)
     }
   end)
   -- a bufArray is just a list of buffers from a mempool that is processed as a single batch
-  local bufs = mmepool;bufArray()
-  while lm.running() do
+  local bufs = mempool:bufArray()
+  while lm.running() do -- check if Ctrl+c was pressed
     -- this actually allocates some buffers from the mempool the array is associated with
     -- this has to be repeated from each send because sending is asynchronous, we cannot reuse the old buffers here
     bufs:alloc(PKT_LEN)
