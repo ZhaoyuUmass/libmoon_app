@@ -55,7 +55,7 @@ function master(args,...)
   local i = 0
   -- start tx tasks
   while args.dev[i] do 
-    dev = args.dev[i]
+    local dev = args.dev[i]
     local queue = dev:getTxQueue(0)
     queue:setRate(rate)
     lm.startTask("txSlave", queue, DST_MAC)
