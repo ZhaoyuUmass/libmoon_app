@@ -56,7 +56,7 @@ function master(args,...)
   while args.dev[i] do 
     dev = args.dev[i]
     queue = dev:getTxQueue(0)
-    queue:setRate(rate)
+    queue:setRate(nil)
     lm.startTask("txSlave", queue, DST_MAC)
   end
   lm.waitForTasks()
