@@ -11,5 +11,5 @@ function configure(parser)
 end
 
 function master(args,...)
-  print("This script is used to generate packets at load of %d Mbit/s with %d flows", rate, flows)
+  printf("This script is used to generate packets at load of %d Mbit/s with %d flows", args.rate, args.flows)
 end
