@@ -53,9 +53,9 @@ function master(args,...)
   stats.startStatsTask{devices = args.dev}
   
   -- start tx and rx tasks
-  lm.startTask("txSlave", queue, destMac)
+  lm.startTask("txSlave", args.dev[i]:getTxQueue(0), DST_MAC)
   
-  lm.startTask("rxSlave", queue)
+  --lm.startTask("rxSlave", queue)
 end
 
 function txSlave(queue, dstMac)
