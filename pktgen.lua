@@ -1,4 +1,4 @@
-
+local log    = require "log"
 
 -- the configure function is called on startup with a pre-initialized command line parser
 function configure(parser)
