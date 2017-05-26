@@ -26,10 +26,11 @@ function master(args,...)
     local dev = device.config{
       port = dev,
       txQueues = 1,
-      rxQueues = 1,
-      rate = rate
+      rxQueues = 1
     }
     args.dev[i] = dev
   end
   device.waitForLinks()
+  
+  
 end
