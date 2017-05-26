@@ -1,3 +1,5 @@
+local lm     = require "libmoon"
+local device = require "device"
 local log    = require "log"
 
 -- the configure function is called on startup with a pre-initialized command line parser
