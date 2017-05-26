@@ -26,7 +26,8 @@ function master(args,...)
     local dev = device.config{
       port = dev,
       txQueues = 1,
-      rxQueues = 1
+      rxQueues = 1,
+      rate = rate
     }
     args.dev[i] = dev
   end
