@@ -53,10 +53,10 @@ function master(args,...)
   stats.startStatsTask{devices = args.dev}
   
   -- start tx and rx tasks
-  while args.dev[i] do 
+  while args.dev do 
     dev = args.dev[i]
     queue = dev:getTxQueue(0)
-    queue:setRate(nil)
+    queue:setRate(rate)
     lm.startTask("txSlave", queue, DST_MAC)
   end
   lm.waitForTasks()
