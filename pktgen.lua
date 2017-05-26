@@ -9,3 +9,7 @@ function configure(parser)
   parser:flag("-a --arp", "Use ARP.")
   return parser:parse()
 end
+
+function master(args,...)
+
+end
