@@ -1,3 +1,5 @@
+-- Generate TCP or UDP traffic
+
 local lm     = require "libmoon"
 local device = require "device"
 local log    = require "log"
@@ -8,7 +10,7 @@ function configure(parser)
   parser:argument("dev", "Devices to use."):args("+"):convert(tonumber)
   parser:option("-f --flows", "Number of flows per device."):args(1):convert(tonumber):default(1)
   parser:option("-r --rate", "Transmit rate in Mbit/s per device."):args(1)
-  parser:flag("-a --arp", "Use ARP.")
+  parser:flag("-t --tcp", "Use TCP.")
   return parser:parse()
 end
 
@@ -32,5 +34,6 @@ function master(args,...)
   end
   device.waitForLinks()
   
-  
+  while lm.running() do
+  end
 end
