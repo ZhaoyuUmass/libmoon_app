@@ -54,9 +54,12 @@ function master(args,...)
   
   -- start tx and rx tasks
   while args.dev[i] do 
-    lm.startTask("txSlave", args.dev[i]:getTxQueue(0), DST_MAC)
+    dev = args.dev[i]
+    queue = dev:getTxQueue(0)
+    queue:setRate(rate)
+    lm.startTask("txSlave", queue, DST_MAC)
   end
-  
+  lm.waitForTasks()
   --lm.startTask("rxSlave", queue)
 end
 
