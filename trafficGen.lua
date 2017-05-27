@@ -49,6 +49,8 @@ function master(args,...)
   end
   device.waitForLinks()
   
+  
+  
   -- print statistics
   stats.startStatsTask{devices = args.dev}
   
@@ -58,7 +60,6 @@ function master(args,...)
     local dev = args.dev[i]
     local queue = dev:getTxQueue(0)
     queue:setRate(args.rate)
-    print("dev",i)
     lm.startTask("txSlave", queue, DST_MAC)
     i = i+1    
   end
