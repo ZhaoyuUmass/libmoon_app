@@ -5,6 +5,7 @@ local device = require "device"
 local log    = require "log"
 local stats  = require "stats"
 local memory = require "memory"
+local arp    = require "proto.arp"
 
 -- set addresses here
 local DST_MAC       = nil -- resolved via ARP on GW_IP or DST_IP, can be overriden with a string here
@@ -26,6 +27,7 @@ function configure(parser)
   parser:option("-d --dest", "destination IP"):args(1)
   parser:option("-m --mac", "destination MAC"):args(1)
   parser:flag("-t --tcp", "Use TCP.")
+  parser:flag("-a --arp", "Use ARP.")
   return parser:parse()
 end
 
@@ -58,7 +60,7 @@ function master(args,...)
     local dev = args.dev[i]
     local queue = dev:getTxQueue(0)
     queue:setRate(rate)
-    lm.startTask("txSlave", queue, DST_MAC)
+    lm.startTask("txSlave", queue, args.mac)
     i = i+1
     print("dev",i)
   end
