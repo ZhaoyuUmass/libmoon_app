@@ -50,14 +50,14 @@ function master(args,...)
   end
   device.waitForLinks()
   
-  -- print statistics
-  stats.startStatsTask{devices = args.dev}
+  -- TODO: print statistics only for tx queues
+  stats.startStatsTask{txDevices = args.dev}
   
   -- start tx tasks
   for _,dev in pairs(args.dev) do
     -- initialize a local queue: local is very important here
-    local queue = dev:getTxQueue(0)
-    -- the software rate limiter always works
+    local queue = dev:getTxQueue(0)    
+    -- the software rate limiter always works, but it can only scale up to 5.55Mpps (64b packet) with Intel 82599 NIC on EC2
     local rateLimiter = limiter:new(queue, pattern, 1 / args.rate * 1000)
     -- set rate on each device
     -- queue:setRate(args.rate)
@@ -99,3 +99,5 @@ function txSlave(queue, dstMac, rateLimiter)
     rateLimiter:send(bufs)
   end
 end
+
+
