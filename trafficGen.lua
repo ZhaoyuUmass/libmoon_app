@@ -54,11 +54,10 @@ function master(args,...)
   -- print statistics
   stats.startStatsTask{devices = args.dev}
   
-  local i = 0
   -- start tx tasks
-  while args.dev[i] do 
-    local device = args.dev[i]
-    local queue = device:getTxQueue(0)
+  for i,dev in pairs(args.dev) do
+    local queue = dev:getTxQueue(0)
+    -- queue:setRate(10000)
     lm.startTask("txSlave", queue, DST_MAC)
     i = i+1    
   end
