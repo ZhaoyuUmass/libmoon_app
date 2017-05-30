@@ -45,7 +45,7 @@ function master(args,...)
     local dev = device.config{
       port = dev,
       txQueues = 1,
-      rxQueues = 1
+      disableOffloads = false
     }
     args.dev[i] = dev
   end
