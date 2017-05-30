@@ -49,17 +49,16 @@ function master(args,...)
   end
   device.waitForLinks()
   
-  
-  
   -- print statistics
   stats.startStatsTask{devices = args.dev}
   
   -- start tx tasks
-  for i,dev in pairs(args.dev) do
+  for _,dev in pairs(args.dev) do
+    -- initialize a local queue: local is very important here
     local queue = dev:getTxQueue(0)
-    -- queue:setRate(10000)
-    lm.startTask("txSlave", queue, DST_MAC)
-    i = i+1    
+    -- set rate on each device
+    queue:setRate(args.rate)
+    lm.startTask("txSlave", queue, DST_MAC)   
   end
   lm.waitForTasks()
 end
