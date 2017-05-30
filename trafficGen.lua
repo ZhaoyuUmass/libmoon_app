@@ -1,10 +1,12 @@
--- Generate TCP or UDP traffic
+-- Generate TCP or UDP traffic at a rate
 
 local lm     = require "libmoon"
 local device = require "device"
 local log    = require "log"
 local stats  = require "stats"
 local memory = require "memory"
+local limiter = require "software-ratecontrol"
+
 
 -- set addresses here
 local DST_MAC       = nil -- resolved via ARP on GW_IP or DST_IP, can be overriden with a string here
@@ -14,14 +16,14 @@ local DST_IP        = "10.1.0.10"
 local SRC_PORT_BASE = 1234 -- actual port will be SRC_PORT_BASE * random(NUM_FLOWS)
 local DST_PORT      = 1234
 local NUM_FLOWS     = 1000
-
+local pattern       = "cbr" -- traffic pattern, default is cbr, another option is poisson
 
 -- the configure function is called on startup with a pre-initialized command line parser
 function configure(parser)
   parser:description("Edit the source to modify constants like IPs and ports.")
   parser:argument("dev", "Devices to use."):args("+"):convert(tonumber)
   parser:option("-f --flows", "Number of flows per device."):args(1):convert(tonumber):default(1)
-  parser:option("-r --rate", "Transmit rate in Mbit/s per device."):args(1):convert(tonumber)
+  parser:option("-r --rate", "Transmit rate in Mbit/s per device."):args(1):convert(tonumber):default(1)
   parser:option("-s --source", "source IP"):args(1)
   parser:option("-d --dest", "destination IP"):args(1)
   parser:option("-m --mac", "destination MAC"):args(1)
@@ -56,14 +58,16 @@ function master(args,...)
   for _,dev in pairs(args.dev) do
     -- initialize a local queue: local is very important here
     local queue = dev:getTxQueue(0)
+    -- the software rate limiter always works
+    local rateLimiter = limiter:new(queue, pattern, 1 / rate * 1000)
     -- set rate on each device
-    queue:setRate(args.rate)
-    lm.startTask("txSlave", queue, DST_MAC)   
+    -- queue:setRate(args.rate)
+    lm.startTask("txSlave", queue, DST_MAC, rateLimiter)   
   end
   lm.waitForTasks()
 end
 
-function txSlave(queue, dstMac)
+function txSlave(queue, dstMac, rateLimiter)
   -- memory pool with default values for all packets, this is our archetype
   local mempool = memory.createMemPool(function(buf)
     buf:getUdpPacket():fill{
@@ -92,6 +96,7 @@ function txSlave(queue, dstMac)
     -- UDP checksum offloading is comparatively slow: NICs typically do not support calculating the pseudo-header checksum so this is done in SW
     bufs:offloadUdpChecksums()
     -- send out all packets and frees old bufs that have been sent
-    queue:send(bufs)
+    -- queue:send(bufs)
+    rateLimiter:send(bufs)
   end
 end
