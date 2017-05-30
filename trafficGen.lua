@@ -59,7 +59,7 @@ function master(args,...)
     -- initialize a local queue: local is very important here
     local queue = dev:getTxQueue(0)
     -- the software rate limiter always works
-    local rateLimiter = limiter:new(queue, pattern, 1 / rate * 1000)
+    local rateLimiter = limiter:new(queue, pattern, 1 / args.rate * 1000)
     -- set rate on each device
     -- queue:setRate(args.rate)
     lm.startTask("txSlave", queue, DST_MAC, rateLimiter)   
