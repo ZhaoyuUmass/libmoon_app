@@ -39,13 +39,12 @@ function master(args,...)
     print(k,v)
   end
   
-  -- configure devices and queues
+  -- configure devices, we only need a single txQueue to send traffic
   local arpQueues = {}
   for i,dev in pairs(args.dev) do
     local dev = device.config{
       port = dev,
-      txQueues = 1,
-      disableOffloads = false
+      txQueues = 1
     }
     args.dev[i] = dev
   end
