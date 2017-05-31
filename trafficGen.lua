@@ -9,10 +9,10 @@ local limiter = require "software-ratecontrol"
 
 
 -- set addresses here
-local DST_MAC       = nil -- resolved via ARP on GW_IP or DST_IP, can be overriden with a string here
+local DST_MAC       = "02:dc:71:13:e9:56" -- resolved via ARP on GW_IP or DST_IP, can be overriden with a string here
 local PKT_LEN       = 60
-local SRC_IP        = "10.0.0.10"
-local DST_IP        = "10.1.0.10"
+local SRC_IP        = "10.0.1.5"
+local DST_IP        = "10.0.1.4"
 local SRC_PORT_BASE = 1234 -- actual port will be SRC_PORT_BASE * random(NUM_FLOWS)
 local DST_PORT      = 1234
 local NUM_FLOWS     = 1000
@@ -38,6 +38,9 @@ function master(args,...)
   for k,v in pairs(args.dev) do
     print(k,v)
   end
+  print("SRC_IP",SRC_IP)
+  print("DST_IP",DST_IP)
+  print("DST_MAC",DST_MAC)
   
   -- configure devices, we only need a single txQueue to send traffic
   local arpQueues = {}
@@ -48,6 +51,7 @@ function master(args,...)
     }
     args.dev[i] = dev
   end
+  
   device.waitForLinks()
   
   -- TODO: print statistics only for tx queues
