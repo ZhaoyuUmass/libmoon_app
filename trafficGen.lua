@@ -9,7 +9,7 @@ local limiter = require "software-ratecontrol"
 
 
 -- set addresses here
-local DST_MAC       = "02:dc:71:13:e9:56" -- resolved via ARP on GW_IP or DST_IP, can be overriden with a string here
+local DST_MAC       = "96:76:c5:40:66:21" -- resolved via ARP on GW_IP or DST_IP, can be overriden with a string here
 local PKT_LEN       = 60
 local SRC_IP        = "10.0.1.5"
 local DST_IP        = "10.0.1.4"
@@ -47,16 +47,15 @@ function master(args,...)
   for i,dev in pairs(args.dev) do
     local dev = device.config{
       port = dev,
-      txQueues = 1,
-      rxQueues = 1
+      txQueues = 1
     }
     args.dev[i] = dev
   end
   
   device.waitForLinks()
   
-  -- TODO: print statistics only for tx queues
-  stats.startStatsTask{devices = args.dev}
+  -- print statistics for both tx and rx queues
+  stats.startStatsTask{txDevices = args.dev}
   
   -- start tx tasks
   for _,dev in pairs(args.dev) do
