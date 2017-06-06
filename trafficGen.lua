@@ -70,7 +70,7 @@ function master(args,...)
       local rxQueue = dev:getRxQueue(0)
       local txQueue = dev:getTxQueue(0)
       -- use 1/100 traffic rate for latency task
-      local rateLimiter = limiter:new(queue, pattern, 100/args.rate*1000)
+      local rateLimiter = limiter:new(queue, pattern, 1/0.01*1000)
       lm.startTask("txLatency", txQueue, DST_MAC, rateLimiter)
       lm.startTask("rxLatency", rxQueue)
     else
