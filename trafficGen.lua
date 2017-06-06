@@ -197,7 +197,7 @@ function rxLatency(rxQueue)
       -- print("received a packet with payload", tonumber(pkt.payload.uint64[0]))
       
       local rxTs = pkt.payload.uint64[0]
-      tm_rcvd[#tm_rcvd+1] = tonumber(rxTs)
+      tm_rcvd[#tm_rcvd+1] = rxTs
       print("received",rxTS)
       -- print("received a packet", rxTs, txTs, tonumber(rxTs - txTs) / tscFreq * 10^9)      
       ctr:update()
