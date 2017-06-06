@@ -159,7 +159,7 @@ function txLatency(queue, dstMac, limiter)
     bufs:offloadUdpChecksums()
     -- queue:sendWithTimestamp(bufs)
     -- queue:send(bufs)
-    rateLimiter:send(bufs)
+    limiter:send(bufs)
     --rateLimiter:wait()
     --rateLimiter:reset()
     j = j + 1
