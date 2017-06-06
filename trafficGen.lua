@@ -47,7 +47,8 @@ function master(args,...)
   for i,dev in pairs(args.dev) do
     local dev = device.config{
       port = dev,
-      txQueues = 1
+      txQueues = 1,
+      rxQueues = 1
     }
     args.dev[i] = dev
   end
@@ -55,7 +56,7 @@ function master(args,...)
   device.waitForLinks()
   
   -- TODO: print statistics only for tx queues
-  stats.startStatsTask{txDevices = args.dev}
+  stats.startStatsTask{devices = args.dev}
   
   -- start tx tasks
   for _,dev in pairs(args.dev) do
@@ -103,5 +104,7 @@ function txSlave(queue, dstMac, rateLimiter)
     rateLimiter:send(bufs)
   end
 end
+
+
 
 
