@@ -150,7 +150,7 @@ function txLatency(queue, dstMac, limiter)
       -- packet framework allows simple access to fields in complex protocol stacks
       local pkt = buf:getUdpPacket()
       pkt.udp:setSrcPort(SRC_PORT_BASE + math.random(0, NUM_FLOWS - 1))
-      local tm = j*NUM_PKTS+i -- mg:getCycles()
+      local tm = mg:getCycles()
       -- print("current cycle:",tm)
       pkt.payload.uint64[0] = tm
       tm_sent[#tm_sent+1] = tm
@@ -198,7 +198,7 @@ function rxLatency(rxQueue)
       
       local rxTs = pkt.payload.uint64[0]
       tm_rcvd[#tm_rcvd+1] = tonumber(rxTs)
-      
+      print("received",rxTS)
       -- print("received a packet", rxTs, txTs, tonumber(rxTs - txTs) / tscFreq * 10^9)      
       ctr:update()
     end
