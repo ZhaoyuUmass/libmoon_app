@@ -9,12 +9,13 @@ local pf     = require "pf"
 local limiter = require "software-ratecontrol"
 
 
-local PKT_SIZE = 60
-local NUM_FLOWS = 1000
+local PKT_SIZE      = 60
+local NUM_FLOWS     = 1000
 local SRC_PORT_BASE = 1234 -- actual port will be SRC_PORT_BASE * random(NUM_FLOWS)
 local DST_PORT      = 1234
+local DST_MAC       = "96:76:c5:40:66:21"
 
-local NUM_PKTS = 10^4
+local NUM_PKTS = 10^6
 
 
 
@@ -26,12 +27,12 @@ function master(txPort, rxPort, load)
 	local rateLimiter = limiter:new(txDev:getTxQueue(0), "cbr", 1 / load * 1000)
 	
 	device.waitForLinks()
-	mg.startTask("txTimestamper", txDev:getTxQueue(0), rateLimiter)
+	mg.startTask("txTimestamper", txDev:getTxQueue(0), DST_MAC, rateLimiter)
 	mg.startTask("rxTimestamper", txDev:getRxQueue(0))
 	mg.waitForTasks()
 end
 
-function txTimestamper(queue, rateLimiter)
+function txTimestamper(queue, dstMac, rateLimiter)
 	print("start sending task")
 	local mem = memory.createMemPool(function(buf)
 		-- just to use the default filter here
@@ -39,9 +40,7 @@ function txTimestamper(queue, rateLimiter)
 		buf:getUdpPacket():fill{
 		  -- this is a right setting for server and client on different hosts
 		  ethSrc = queue, -- MAC of the tx device
-      ethDst = "02:dc:71:13:e9:56",
-      ip4Src = "10.0.1.5",
-      ip4Dst = "10.0.1.4",
+      ethDst = dstMac,
   		pktLength = PKT_SIZE
   		--  		
 		}
