@@ -64,7 +64,7 @@ function master(args,...)
   
   -- start tx tasks
   for i,dev in pairs(args.dev) do
-    if i == 0 then
+    if i == 1 then
       -- the first port is used for a latency task
       -- initalize local queues
       local rxQueue = dev:getRxQueue(0)
