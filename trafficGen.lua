@@ -21,6 +21,9 @@ local DST_PORT      = 1234
 local NUM_FLOWS     = 1000
 local pattern       = "cbr" -- traffic pattern, default is cbr, another option is poisson
 
+local PKT_SIZE = 60
+local NUM_PKTS = 10^4
+
 -- the configure function is called on startup with a pre-initialized command line parser
 function configure(parser)
   parser:description("Edit the source to modify constants like IPs and ports.")
@@ -141,7 +144,7 @@ function txLatency(queue, dstMac, limiter)
   local ctr = stats:newDevTxCounter("Load Traffic", queue.dev, "plain")
   local tm_sent = {}
   
-  while j < NUM_PKTS and mg.running() do
+  while j < 100 and mg.running() do
     bufs:alloc(PKT_SIZE)
     for i, buf in ipairs(bufs) do
       -- packet framework allows simple access to fields in complex protocol stacks
