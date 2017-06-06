@@ -165,6 +165,15 @@ function txLatency(queue, dstMac, limiter)
     j = j + 1
     ctr:update()
   end
+  
+  local f = io.open("sent.txt", "w+")
+  for i, v in ipairs(tm_sent) do
+    f:write(tostring(v) .. "\n")
+  end
+  f:close()
+  ctr:finalize()
+  mg.sleepMillis(5000)
+  mg.stop()
 end
 
 function rxLatency(rxQueue)
