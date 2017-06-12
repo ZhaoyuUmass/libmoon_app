@@ -1,6 +1,6 @@
 -- Generate TCP or UDP traffic at a fixed rate
--- NOTE: to run this test, you must make sure that you have at least 2 ports
--- Usage: sudo ./MoonGen 
+-- NOTE: to run this test, you must make sure that you have at least 2 ports (no requirement for number of queues supported by each port, we assume there is only one queue in each port)
+-- Usage: sudo ./MoonGen path-to-this-script/trafficGen
 
 local mg     = require "moongen"
 local lm     = require "libmoon"
