@@ -9,8 +9,8 @@ local PKT_SIZE = 60
 
 function master(port, dstMac)
   print(port,dstMac)
-  if dev == nil or dstMac == nil then
-    print("Usage: ./Moongen path-to-libmoon_app/back-to-back-latency.lua dev dstMac")
+  if port == nil or dstMac == nil then
+    print("Usage: ./Moongen path-to-libmoon_app/back-to-back-latency.lua port dstMac")
   end
   local dev = device.config{
       port = tonumber(port),
