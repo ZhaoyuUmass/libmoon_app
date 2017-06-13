@@ -10,7 +10,7 @@ local PKT_SIZE = 60
 function master(port, dstMac)
   
   local dev = device.config{
-      port = dev,
+      port = port,
       txQueues = 1,
       rxQueues = 1
   }
