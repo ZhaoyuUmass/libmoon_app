@@ -13,7 +13,7 @@ function master(port, dstMac)
     print("Usage: ./Moongen path-to-libmoon_app/back-to-back-latency.lua dev dstMac")
   end
   local dev = device.config{
-      port = port,
+      port = tonumber(port),
       txQueues = 1,
       rxQueues = 1
   }
