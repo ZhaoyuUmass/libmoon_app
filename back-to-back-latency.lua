@@ -41,7 +41,7 @@ function back2backLatency(dev, dstMac)
   print("initialize memory pool")
   
   local buf_sent = mempool:bufArray()
-  local buf_rcvd = memory:bufArray()
+  local buf_rcvd = memory.bufArray()
   local ctr = stats:newDevTxCounter("Load Traffic", dev, "plain")
   
   local j = 0
