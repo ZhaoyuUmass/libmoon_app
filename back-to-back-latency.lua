@@ -18,7 +18,9 @@ function master(port, dstMac)
       rxQueues = 1
   }
   print("Ready to start subtask...")
-  lm.startTask("back2backLatency", dev, dstMac)  
+  lm.startTask("back2backLatency", dev, dstMac)
+  
+  lm.waitForTasks()
 end
 
 function back2backLatency(dev, dstMac)
