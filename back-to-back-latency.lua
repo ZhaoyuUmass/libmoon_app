@@ -23,6 +23,7 @@ end
 
 function back2backLatency(dev, dstMac)
   
+  print("Start sub task with dev",dev," and mac ",dstMac)
   local txQueue = dev.getTxQueue(0)
   local rxQueue = dev.getRxQueue(0)
   
