@@ -18,16 +18,16 @@ function master(port, dstMac)
       rxQueues = 1
   }
   print("Ready to start subtask...")
-  lm.startTask("back2backLatency", dev, dstMac)
+  lm.startTask("back2backLatency", dev.getTxQueue(0), dev.getRxQueue(0), dstMac)
   
   lm.waitForTasks()
 end
 
-function back2backLatency(dev, dstMac)
+function back2backLatency(txQueue, rxQueue, dstMac)
   
-  print("Start sub task with dev",dev," and mac ",dstMac)
-  local txQueue = dev.getTxQueue(0)
-  local rxQueue = dev.getRxQueue(0)
+  print("Start sub task with txQueue",txQueue,",rxQueue",rxQueue," and mac ",dstMac)
+  -- local txQueue = dev.getTxQueue(0)
+  -- local rxQueue = dev.getRxQueue(0)
   
   
   -- memory pool with default values for all packets, this is our archetype
