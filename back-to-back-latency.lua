@@ -49,6 +49,7 @@ function back2backLatency(dev, dstMac)
     -- send a packet
     buf_sent:alloc(PKT_SIZE)
     for i,buf in ipairs(buf_sent) do
+      print(i)
       buf:getUdpPacket()
     end 
     txQueue:send(buf_sent)
