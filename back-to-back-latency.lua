@@ -41,7 +41,7 @@ function back2backLatency(dev, dstMac)
   print("initialize memory pool")
   
   local buf_sent = mempool:bufArray()
-  local buf_rcvd = memory.bufArray()
+  local buf_rcvd = memory:bufArray()
   local ctr = stats:newDevTxCounter("Load Traffic", dev, "plain")
   
   local j = 0
@@ -49,7 +49,7 @@ function back2backLatency(dev, dstMac)
     -- send a packet
     buf_sent:alloc(PKT_SIZE)
     for i,buf in ipairs(buf_sent) do
-      buf_sent:getUdpPacket()
+      buf:getUdpPacket()
     end 
     txQueue:send(buf_sent)
     
