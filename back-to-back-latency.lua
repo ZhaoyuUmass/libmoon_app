@@ -17,10 +17,11 @@ function master(port, dstMac)
       txQueues = 1,
       rxQueues = 1
   }
-  lm.startTask("back_to_back_latency", dev, dstMac)  
+  print("Ready to start subtask...")
+  lm.startTask("back2backLatency", dev, dstMac)  
 end
 
-function back_to_back_latency(dev, dstMac)
+function back2backLatency(dev, dstMac)
   
   local txQueue = dev.getTxQueue(0)
   local rxQueue = dev.getRxQueue(0)
