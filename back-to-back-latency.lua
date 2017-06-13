@@ -42,7 +42,7 @@ function back_to_back_latency(dev, dstMac)
   local ctr = stats:newDevTxCounter("Load Traffic", dev, "plain")
   
   local j = 0
-  while j < 1000 do
+  while lm.running() do
     -- send a packet
     buf_sent:alloc(1)
     for i,buf in ipairs(buf_sent) do
