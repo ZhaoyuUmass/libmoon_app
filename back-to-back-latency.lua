@@ -18,6 +18,9 @@ function master(port, dstMac)
 end
 
 function back_to_back_latency(dev, dstMac)
+  if dev == nil or dstMac == nil then
+    print("Usage: ./Moongen path-to-libmoon_app/back-to-back-latency.lua dev dstMac")
+  end
   local txQueue = dev.getTxQueue(0)
   local rxQueue = dev.getRxQueue(0)
   
