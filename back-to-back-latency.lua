@@ -8,7 +8,9 @@ local stats  = require "stats"
 local PKT_SIZE = 60
 
 function master(port, dstMac)
-  
+  if dev == nil or dstMac == nil then
+    print("Usage: ./Moongen path-to-libmoon_app/back-to-back-latency.lua dev dstMac")
+  end
   local dev = device.config{
       port = port,
       txQueues = 1,
@@ -18,11 +20,10 @@ function master(port, dstMac)
 end
 
 function back_to_back_latency(dev, dstMac)
-  if dev == nil or dstMac == nil then
-    print("Usage: ./Moongen path-to-libmoon_app/back-to-back-latency.lua dev dstMac")
-  end
+  
   local txQueue = dev.getTxQueue(0)
   local rxQueue = dev.getRxQueue(0)
+  
   
   -- memory pool with default values for all packets, this is our archetype
   local mempool = memory.createMemPool(function(buf)
@@ -33,6 +34,7 @@ function back_to_back_latency(dev, dstMac)
       pktLength = PKT_SIZE
     }
   end)
+  print("initialize memory pool")
   
   local buf_sent = mempool:bufArray()
   local buf_rcvd = memory.bufArray()
@@ -52,7 +54,8 @@ function back_to_back_latency(dev, dstMac)
     for i = 1, rx do
       local pkt = buf_rcvd[i]:getUdpPacket()
       print("received",pkt)
-    end    
+    end  
+    j = j+1  
   end
   
 end
