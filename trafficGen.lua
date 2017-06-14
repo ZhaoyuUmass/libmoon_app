@@ -12,7 +12,7 @@ local limiter = require "software-ratecontrol"
 
 
 -- set addresses here
-local DST_MAC       = "96:76:c5:40:66:21" -- resolved via ARP on GW_IP or DST_IP, can be overriden with a string here
+local DST_MAC       = "3c:fd:fe:05:b6:e0" -- resolved via ARP on GW_IP or DST_IP, can be overriden with a string here
 local PKT_LEN       = 60
 local SRC_IP        = "10.0.1.5"
 local DST_IP        = "10.0.1.4"
@@ -140,11 +140,10 @@ function txLatency(queue, dstMac, limiter)
   end)
   mg.sleepMillis(1000) -- ensure that the load task is running
   local bufs = mem:bufArray()
-  local j = 0
   local ctr = stats:newDevTxCounter("Load Traffic", queue.dev, "plain")
   local tm_sent = {}
   
-  while j < 100 and mg.running() do
+  while mg.running() do
     bufs:alloc(PKT_SIZE)
     for i, buf in ipairs(bufs) do
       -- packet framework allows simple access to fields in complex protocol stacks
@@ -162,7 +161,6 @@ function txLatency(queue, dstMac, limiter)
     limiter:send(bufs)
     --rateLimiter:wait()
     --rateLimiter:reset()
-    j = j + 1
     ctr:update()
   end
   
