@@ -56,7 +56,7 @@ function reflector(rxQ, txQ)
 			local tmp = pkt.eth:getDst()
 			pkt.eth:setDst(pkt.eth:getSrc())
 			pkt.eth:setSrc(tmp)
-			print("src:",pkt.eth:getSrc(),"dst:",pkt.eth:getDst())
+			-- print("src:",pkt.eth:getSrc(),"dst:",pkt.eth:getDst())
 			--[[
 			local vlan = bufs[i]:getVlan()
 			if vlan then
