@@ -102,14 +102,14 @@ end
 function txSlave(queue, dstMac, rateLimiter)
   -- memory pool with default values for all packets, this is our archetype
   local mempool = memory.createMemPool(function(buf)
-    buf:getEthPacket():fill{
+    buf:getUdpPacket():fill{
       -- fields not explicitly set here are initialized to reasonable defaults
       ethSrc = queue, -- MAC of the tx device
       ethDst = dstMac,
-      -- ip4Src = SRC_IP,
-      -- ip4Dst = DST_IP,
-      -- udpSrc = SRC_PORT,
-      -- udpDst = DST_PORT,
+      ip4Src = SRC_IP,
+      ip4Dst = DST_IP,
+      udpSrc = SRC_PORT,
+      udpDst = DST_PORT,
       pktLength = PKT_LEN
     }
   end)
