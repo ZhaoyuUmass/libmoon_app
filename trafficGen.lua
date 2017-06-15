@@ -89,7 +89,11 @@ function master(args,...)
        set rate on each device
        queue:setRate(args.rate)
       ]]--
-      lm.startTask("txSlave", queue, DST_MAC, rateLimiter)   
+      if DST_MAC then
+        lm.startTask("txSlave", queue, DST_MAC, rateLimiter) 
+      else 
+        lm.startTask("txSlave", queue, args.mac, rateLimiter)
+      end
     -- end
   end
   lm.waitForTasks()
