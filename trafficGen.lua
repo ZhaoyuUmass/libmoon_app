@@ -12,7 +12,7 @@ local limiter = require "software-ratecontrol"
 
 
 -- set addresses here
-local DST_MAC       = "3c:fd:fe:05:b6:e0" -- resolved via ARP on GW_IP or DST_IP, can be overriden with a string here
+local DST_MAC       = "3c:fd:fe:07:07:c0" -- resolved via ARP on GW_IP or DST_IP, can be overriden with a string here
 local PKT_LEN       = 60
 local SRC_IP        = "10.0.1.5"
 local DST_IP        = "10.0.1.4"
@@ -67,6 +67,7 @@ function master(args,...)
   
   -- start tx tasks
   for i,dev in pairs(args.dev) do
+  --[[ 
     if i == 1 then
       -- the first port is used for a latency task
       -- initalize local queues
@@ -77,6 +78,7 @@ function master(args,...)
       lm.startTask("txLatency", txQueue, DST_MAC, rateLimiter)
       lm.startTask("rxLatency", rxQueue)
     else
+    ]]--
       -- the rest of the queue is used for sending traffic
       
       -- initialize a local queue: local is very important here
@@ -88,7 +90,7 @@ function master(args,...)
        queue:setRate(args.rate)
       ]]--
       lm.startTask("txSlave", queue, DST_MAC, rateLimiter)   
-    end
+    -- end
   end
   lm.waitForTasks()
 end
