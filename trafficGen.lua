@@ -12,7 +12,7 @@ local limiter = require "software-ratecontrol"
 
 
 -- set addresses here
-local DST_MAC       = "3c:fd:fe:07:07:c0" -- resolved via ARP on GW_IP or DST_IP, can be overriden with a string here
+local DST_MAC       = nil -- resolved via ARP on GW_IP or DST_IP, can be overriden with a string here
 local PKT_LEN       = 60
 local SRC_IP        = "10.0.1.5"
 local DST_IP        = "10.0.1.4"
