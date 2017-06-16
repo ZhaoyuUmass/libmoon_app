@@ -36,7 +36,7 @@ function configure(parser)
   return parser:parse()
 end
 
-function master(args,...)
+function master(args, port, ...)
   for k,v in pairs(args) do
     print(k,v)
   end
@@ -58,22 +58,24 @@ function master(args,...)
     }
     args.dev[i] = dev
   end
-  
+  local dev = device.config{
+      port = dev,
+      txQueues = 1,
+      rxQueues = 1
+  }
   device.waitForLinks()
   
   -- print statistics for both tx and rx queues
-  stats.startStatsTask{devices = args.dev}
+  stats.startStatsTask{devices = device}
   
+  lm.startTask("txSlave", device:getTxQueue(0), DST_MAC, rateLimiter) 
   -- start tx tasks
+  --[[
   for i,dev in pairs(args.dev) do
     -- initialize a local queue: local is very important here
     local queue = dev:getTxQueue(0)    
     -- the software rate limiter always works, but it can only scale up to 5.55Mpps (64b packet) with Intel 82599 NIC on EC2
     local rateLimiter = limiter:new(queue, pattern, 1 / args.rate * 1000)
-    --[[ this method does not work with VF
-     set rate on each device
-     queue:setRate(args.rate)
-    ]]--
     if DST_MAC then
       lm.startTask("txSlave", queue, DST_MAC, rateLimiter) 
     elseif args.mac then
@@ -82,8 +84,9 @@ function master(args,...)
       print("no mac specified")
     end
   end
+  ]]--
   -- start rx task
-  -- lm.startTask("rxLatency", args.dev[0]:getRxQueue(0))
+  lm.startTask("rxLatency", device:getRxQueue(0))
   
   lm.waitForTasks()
   
