@@ -188,13 +188,11 @@ function rxLatency(rxQueue)
     local rx = rxQueue:tryRecv(bufs)
     for i = 1, rx do
       local buf = bufs[i]      
-            
+      --[[      
       local pkt = buf:getUdpPacket()
       local txTs = pkt.payload.uint64[0]
       f:write(tostring(txTs) .. tostring(mg:getCycles()) .. "\n")
-      
-      -- tm_rcvd[#tm_rcvd+1] = rxTs
-      -- print("received", rxTs)
+      ]]--
       -- print("received a packet", rxTs, txTs, tonumber(rxTs - txTs) / tscFreq * 10^9)
       
       pktCtr:countPacket(buf)           
