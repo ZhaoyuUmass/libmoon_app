@@ -20,8 +20,8 @@ local SRC_PORT_BASE = 1234 -- actual port will be SRC_PORT_BASE * random(NUM_FLO
 local DST_PORT      = 1234
 local NUM_FLOWS     = 1000
 local pattern       = "cbr" -- traffic pattern, default is cbr, another option is poisson
-
-local SRC_IP_SET = {}
+ 
+local SAMPLE_RATE = 10000
 
 -- Helper functions --
 local function integer(a,b)
@@ -66,14 +66,6 @@ function master(args, ...)
   print("DST_IP",DST_IP)
   print("DST_MAC",DST_MAC)
   
-  local num = math.ceil(args.flows/NUM_FLOWS)
-  for i = 1,num do
-    SRC_IP_SET[#SRC_IP_SET+1] = random_ipv4()
-  end
-  for i,v in ipairs(SRC_IP_SET) do
-    print(i,v)
-  end
-  
   -- configure devices, we only need a single txQueue to send traffic and another port to send latency traffic
   -- Note: VF only supports 1 tx and rx queue on agave machines, that's why we hard code the number to 1 here
   for i,dev in pairs(args.dev) do
@@ -86,9 +78,6 @@ function master(args, ...)
   end
 
   device.waitForLinks()
-  
-  -- print statistics for both tx and rx queues
-  -- stats.startStatsTask{txDevices = args.dev}
   
   -- start tx tasks
   for i,dev in pairs(args.dev) do
@@ -114,7 +103,7 @@ function master(args, ...)
   end
 end
 
-function txSlave(queue, dstMac, rateLimiter)
+function txSlave(queue, dstMac, rateLimiter, numFlows)
   -- memory pool with default values for all packets, this is our archetype
   local mempool = memory.createMemPool(function(buf)
     buf:getUdpPacket():fill{
@@ -131,6 +120,16 @@ function txSlave(queue, dstMac, rateLimiter)
   -- a bufArray is just a list of buffers from a mempool that is processed as a single batch
   local bufs = mempool:bufArray()
   
+  local SRC_IP_SET = {}
+  local num = math.ceil(args.flows/NUM_FLOWS)
+  for i = 1,num do
+    SRC_IP_SET[#SRC_IP_SET+1] = random_ipv4()
+  end
+  print("SRC_IP_SET:")
+  for i,v in ipairs(SRC_IP_SET) do
+    print(i,v)
+  end
+  
   local pktCtr = stats:newPktTxCounter("Packets sent", "plain")
   while lm.running() do -- check if Ctrl+c was pressed
     -- this actually allocates some buffers from the mempool the array is associated with
@@ -138,10 +137,12 @@ function txSlave(queue, dstMac, rateLimiter)
     bufs:alloc(PKT_LEN)
     for i, buf in ipairs(bufs) do
       -- packet framework allows simple access to fields in complex protocol stacks
+      pktCtr:countPacket(buf)
+      local cnt, _ = pktCtr:getThroughput()
       local pkt = buf:getUdpPacket()
+      pkt.ip4:setSrcString(SRC_IP_SET[math.floor(cnt/NUM_FLOWS)])
       pkt.udp:setSrcPort(SRC_PORT_BASE + math.random(0, NUM_FLOWS - 1))
       pkt.payload.uint64[0] = lm:getCycles()
-      pktCtr:countPacket(buf)
     end
     -- UDP checksums are optional, so using just IPv4 checksums would be sufficient here
     -- UDP checksum offloading is comparatively slow: NICs typically do not support calculating the pseudo-header checksum so this is done in SW
@@ -160,9 +161,6 @@ end
 function rxLatency(rxQueue)
   local tscFreq = mg.getCyclesFrequency()
   print("tscFreq",tscFreq)
-  for i,v in ipairs(SRC_IP_SET) do
-    print(i,v)
-  end
   
   -- use whatever filter appropriate for your packet type
   -- queue:filterUdpTimestamps()
@@ -178,7 +176,7 @@ function rxLatency(rxQueue)
       pktCtr:countPacket(buf)
       local ctr,_ = pktCtr:getThroughput() 
       -- sample packet to calculate latency
-      if ctr % 10000 == 0 then
+      if ctr % SAMPLE_RATE == 0 then
         local rxTs = mg:getCycles()
         local pkt = buf:getUdpPacket()
         local txTs = pkt.payload.uint64[0]
