@@ -30,10 +30,9 @@ function configure(parser)
   parser:argument("dev", "Devices to use."):args("+"):convert(tonumber)
   parser:option("-f --flows", "Number of flows per device."):args(1):convert(tonumber):default(1)
   parser:option("-r --rate", "Transmit rate in Mbit/s per device."):args(1):convert(tonumber):default(1)
-  parser:option("-s --source", "source IP"):args(1)
-  parser:option("-d --dest", "destination IP"):args(1)
   parser:option("-m --mac", "destination MAC"):args(1)
-  parser:flag("-t --tcp", "Use TCP.")
+  -- parser:flag("-t --tcp", "Use TCP.")
+  parser:flag("-l --latency", "Measure latency")
   return parser:parse()
 end
 
@@ -66,21 +65,18 @@ function master(args,...)
   stats.startStatsTask{devices = args.dev}
   
   -- start tx tasks
-  for i,dev in pairs(args.dev) do
-  --[[ 
+  for i,dev in pairs(args.dev) do 
     if i == 1 then
       -- the first port is used for a latency task
       -- initalize local queues
       local rxQueue = dev:getRxQueue(0)
       local txQueue = dev:getTxQueue(0)
       -- use 1/100 traffic rate for latency task
-      local rateLimiter = limiter:new(txQueue, pattern, 1/1*1000)
+      local rateLimiter = limiter:new(txQueue, pattern, 1/0.01*1000)
       lm.startTask("txLatency", txQueue, DST_MAC, rateLimiter)
       lm.startTask("rxLatency", rxQueue)
     else
-    ]]--
-      -- the rest of the queue is used for sending traffic
-      
+      -- the rest of the queue is used for sending traffic      
       -- initialize a local queue: local is very important here
       local queue = dev:getTxQueue(0)    
       -- the software rate limiter always works, but it can only scale up to 5.55Mpps (64b packet) with Intel 82599 NIC on EC2
@@ -94,7 +90,7 @@ function master(args,...)
       else 
         lm.startTask("txSlave", queue, args.mac, rateLimiter)
       end
-    -- end
+    end
   end
   lm.waitForTasks()
 end
@@ -150,23 +146,18 @@ function txLatency(queue, dstMac, limiter)
   local tm_sent = {}
   
   while mg.running() do
-    bufs:alloc(PKT_SIZE)
+    bufs:alloc(1)
     for i, buf in ipairs(bufs) do
       -- packet framework allows simple access to fields in complex protocol stacks
       local pkt = buf:getUdpPacket()
       pkt.udp:setSrcPort(SRC_PORT_BASE + math.random(0, NUM_FLOWS - 1))
       local tm = mg:getCycles()
-      -- print("current cycle:",tm)
       pkt.payload.uint64[0] = tm
       tm_sent[#tm_sent+1] = tm
-      -- print("payload:",tonumber(pkt.payload.uint64[0]))
+      print("payload:",tonumber(pkt.payload.uint64[0]))
     end
     bufs:offloadUdpChecksums()
-    -- queue:sendWithTimestamp(bufs)
-    -- queue:send(bufs)
     limiter:send(bufs)
-    --rateLimiter:wait()
-    --rateLimiter:reset()
     ctr:update()
   end
   
@@ -206,17 +197,6 @@ function rxLatency(rxQueue)
       -- print("received a packet", rxTs, txTs, tonumber(rxTs - txTs) / tscFreq * 10^9)      
       ctr:update()
     end
-    --[[
-    local numPkts = queue:recvWithTimestamps(bufs)
-    for i = 1, numPkts do
-      local rxTs = bufs[i].udata64
-      local txTs = bufs[i]:getSoftwareTxTimestamp()
-      print("received a packet",rxTs, txTs, tonumber(rxTs - txTs) / tscFreq * 10^9)
-      results[#results + 1] = tonumber(rxTs - txTs) / tscFreq * 10^9 -- to nanoseconds
-      ctr:update()
-    end
-    bufs:free(numPkts)
-    ]]--
   end
   ctr:finalize()
   
@@ -228,4 +208,22 @@ function rxLatency(rxQueue)
 end
 
 
+-- Helper functions --
+function integer(a,b)
+  if a == nil and b == nil then
+    return math.random(0, 100)
+  end
+  if b == nil then
+    return math.random(a)
+  end
+  return math.random(a, b)
+end
 
+function random_ipv4()
+  local str = ''
+  for i=1, 4 do
+    str = str .. integer(0, 255)
+    if i ~= 4 then str = str .. '.' end
+  end
+  return str
+end
