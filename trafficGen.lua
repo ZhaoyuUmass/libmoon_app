@@ -146,7 +146,7 @@ function txSlave(queue, dstMac, rateLimiter, numFlows)
         currentIp = SRC_IP_SET[math.ceil(cnt/NUM_FLOWS)%TOTAL_IPS+1]
       end
       local pkt = buf:getUdpPacket()
-      pkt.ip4:setSrcString(currentIp)
+      -- pkt.ip4:setSrcString(currentIp)
       pkt.udp:setSrcPort(cnt % NUM_FLOWS )
       pkt.payload.uint64[0] = lm:getCycles()
       
