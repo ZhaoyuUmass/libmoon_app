@@ -24,11 +24,13 @@ local pattern       = "cbr" -- traffic pattern, default is cbr, another option i
 local PKT_SIZE = 60
 local NUM_PKTS = 10^5
 
+local SRC_IP_SET = {}
+
 -- the configure function is called on startup with a pre-initialized command line parser
 function configure(parser)
   parser:description("Edit the source to modify constants like IPs and ports.")
   parser:argument("dev", "Devices to use."):args("+"):convert(tonumber)
-  parser:option("-f --flows", "Number of flows per device."):args(1):convert(tonumber):default(1)
+  parser:option("-f --flows", "Number of flows per device."):args(1):convert(tonumber):default(1000)
   parser:option("-r --rate", "Transmit rate in Mbit/s per device."):args(1):convert(tonumber):default(1)
   parser:option("-m --mac", "destination MAC"):args(1)
   -- parser:flag("-t --tcp", "Use TCP.")
@@ -47,9 +49,16 @@ function master(args, ...)
   print("DST_IP",DST_IP)
   print("DST_MAC",DST_MAC)
   
+  local num = math.ceil(args.flows/NUM_FLOWS)
+  for i = 1,num do
+    SRC_IP_SET[#SRC_IP_SET+1] = random_ipv4()
+  end
+  for i,v in ipairs(SRC_IP_SET) do
+    print(i,v)
+  end
+  
   -- configure devices, we only need a single txQueue to send traffic and another port to send latency traffic
   -- Note: VF only supports 1 tx and rx queue on agave machines, that's why we hard code the number to 1 here
-  local arpQueues = {}
   for i,dev in pairs(args.dev) do
     local dev = device.config{
       port = dev,
@@ -80,8 +89,7 @@ function master(args, ...)
     
     lm.startTask("rxLatency", dev:getRxQueue(0))
   end
-  
-  
+    
   lm.waitForTasks()
   
   for i,dev in pairs(args.dev) do
@@ -199,16 +207,16 @@ function rxLatency(rxQueue)
       pktCtr:countPacket(buf)
       local ctr,_ = pktCtr:getThroughput() 
       if ctr % 10000 == 0 then
+        local rxTs = mg:getCycles()
         local pkt = buf:getUdpPacket()
         local txTs = pkt.payload.uint64[0]
-        f:write(tostring(tonumber(mg:getCycles() - txTs) / tscFreq * 10^9) .. "\n")
+        f:write(tostring(tonumber(rxTs - txTs) / tscFreq * 10^9) .. " " .. tostring(tonumber(rxTs)) .. "\n")
       end   
     end
     pktCtr:update()
     bufs:freeAll()
   end
-  pktCtr:finalize()
-  
+  pktCtr:finalize()  
   f:close() 
 end
 
