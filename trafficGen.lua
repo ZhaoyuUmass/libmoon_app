@@ -68,7 +68,9 @@ function master(args, port, ...)
   -- print statistics for both tx and rx queues
   stats.startStatsTask{devices = device}
   
-  lm.startTask("txSlave", device:getTxQueue(0), DST_MAC, rateLimiter) 
+  local txQueue = dev:getTxQueue(0)  
+  local rateLimiter = limiter:new(txQueue, pattern, 1 / args.rate * 1000)
+  lm.startTask("txSlave", device:get(txQueue, DST_MAC, rateLimiter) )
   -- start tx tasks
   --[[
   for i,dev in pairs(args.dev) do
