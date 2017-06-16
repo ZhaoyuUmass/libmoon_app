@@ -125,10 +125,12 @@ function txSlave(queue, dstMac, rateLimiter, numFlows)
   for i = 1, TOTAL_IPS do
     SRC_IP_SET[#SRC_IP_SET+1] = random_ipv4()
   end
+  --[[
   print("SRC_IP_SET:")
   for i,v in ipairs(SRC_IP_SET) do
     print(i,v)
   end
+  ]]--
   
   local pktCtr = stats:newPktTxCounter("Packets sent", "plain")
   while lm.running() do -- check if Ctrl+c was pressed
