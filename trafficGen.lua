@@ -36,7 +36,7 @@ function configure(parser)
   return parser:parse()
 end
 
-function master(args, port, ...)
+function master(port, args, ...)
   for k,v in pairs(args) do
     print(k,v)
   end
