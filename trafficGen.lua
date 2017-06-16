@@ -65,36 +65,25 @@ function master(args,...)
   stats.startStatsTask{devices = args.dev}
   
   -- start tx tasks
-  for i,dev in pairs(args.dev) do 
-    --[[
-    if i == 1 then
-      -- the first port is used for a latency task
-      -- initalize local queues
-      local rxQueue = dev:getRxQueue(0)
-      local txQueue = dev:getTxQueue(0)
-      -- use 1/100 traffic rate for latency task
-      local rateLimiter = limiter:new(txQueue, pattern, 1/10*1000)
-      lm.startTask("txLatency", txQueue, DST_MAC, rateLimiter)
-      lm.startTask("rxLatency", rxQueue)
-    else
+  for i,dev in pairs(args.dev) do
+    -- initialize a local queue: local is very important here
+    local queue = dev:getTxQueue(0)    
+    -- the software rate limiter always works, but it can only scale up to 5.55Mpps (64b packet) with Intel 82599 NIC on EC2
+    local rateLimiter = limiter:new(queue, pattern, 1 / args.rate * 1000)
+    --[[ this method does not work with VF
+     set rate on each device
+     queue:setRate(args.rate)
     ]]--
-      -- the rest of the queue is used for sending traffic      
-      -- initialize a local queue: local is very important here
-      local queue = dev:getTxQueue(0)    
-      -- the software rate limiter always works, but it can only scale up to 5.55Mpps (64b packet) with Intel 82599 NIC on EC2
-      local rateLimiter = limiter:new(queue, pattern, 1 / args.rate * 1000)
-      --[[ this method does not work with VF
-       set rate on each device
-       queue:setRate(args.rate)
-      ]]--
-      if DST_MAC then
-        lm.startTask("txSlave", queue, DST_MAC, rateLimiter) 
-      else 
-        lm.startTask("txSlave", queue, args.mac, rateLimiter)
-      end
+    if DST_MAC then
+      lm.startTask("txSlave", queue, DST_MAC, rateLimiter) 
+    elseif args.mac then
+      lm.startTask("txSlave", queue, args.mac, rateLimiter)
+    else
+      print("no mac specified")
+    end
   end
   -- start rx task
-  lm.startTask("rxLatency", dev:getRxQueue(0))
+  lm.startTask("rxLatency", args.dev[0]:getRxQueue(0))
   lm.waitForTasks()
   
   for i,dev in pairs(args.dev) do
