@@ -131,7 +131,7 @@ function txSlave(queue, dstMac, rateLimiter, numFlows)
     print(i,v)
   end
   ]]--
-  local currentIp = SRC_IP_SET[0]
+  local currentIp = SRC_IP_SET[1]
   local pktCtr = stats:newPktTxCounter("Packets sent", "plain")
   while lm.running() do -- check if Ctrl+c was pressed
     -- this actually allocates some buffers from the mempool the array is associated with
