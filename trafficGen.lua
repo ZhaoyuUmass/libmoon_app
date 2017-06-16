@@ -86,9 +86,9 @@ function master(args, ...)
     -- the software rate limiter always works, but it can only scale up to 5.55Mpps (64b packet) with Intel 82599 NIC on EC2
     local rateLimiter = limiter:new(queue, pattern, 1 / args.rate * 1000)
     if DST_MAC then
-      lm.startTask("txSlave", queue, DST_MAC, rateLimiter) 
+      lm.startTask("txSlave", queue, DST_MAC, rateLimiter, args.flows) 
     elseif args.mac then
-      lm.startTask("txSlave", queue, args.mac, rateLimiter)
+      lm.startTask("txSlave", queue, args.mac, rateLimiter, args.flows)
     else
       print("no mac specified")
     end
@@ -121,7 +121,7 @@ function txSlave(queue, dstMac, rateLimiter, numFlows)
   local bufs = mempool:bufArray()
   
   local SRC_IP_SET = {}
-  local num = math.ceil(args.flows/NUM_FLOWS)
+  local num = math.ceil(numFlows/NUM_FLOWS)
   for i = 1,num do
     SRC_IP_SET[#SRC_IP_SET+1] = random_ipv4()
   end
@@ -141,7 +141,7 @@ function txSlave(queue, dstMac, rateLimiter, numFlows)
       local cnt, _ = pktCtr:getThroughput()
       local pkt = buf:getUdpPacket()
       pkt.ip4:setSrcString(SRC_IP_SET[math.floor(cnt/NUM_FLOWS)])
-      pkt.udp:setSrcPort(SRC_PORT_BASE + math.random(0, NUM_FLOWS - 1))
+      pkt.udp:setSrcPort(SRC_PORT_BASE + cnt% NUM_FLOWS )
       pkt.payload.uint64[0] = lm:getCycles()
     end
     -- UDP checksums are optional, so using just IPv4 checksums would be sufficient here
