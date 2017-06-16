@@ -181,7 +181,7 @@ function rxLatency(rxQueue)
   
   -- use whatever filter appropriate for your packet type
   -- queue:filterUdpTimestamps()
-  local ctr = stats:newPktRxCounter("Received Traffic", rxQueue.dev, "plain")
+  local ctr = stats:newPktRxCounter("Received Traffic" .. rxQueue.dev, "plain")
   local bufs = memory.bufArray()
   while mg.running() do
     local rx = rxQueue:tryRecv(bufs)
