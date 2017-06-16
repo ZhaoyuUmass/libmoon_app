@@ -36,7 +36,7 @@ function configure(parser)
   return parser:parse()
 end
 
-function master(port, args, ...)
+function master(args, ...)
   for k,v in pairs(args) do
     print(k,v)
   end
@@ -58,11 +58,8 @@ function master(port, args, ...)
     }
     args.dev[i] = dev
   end
-  local dev = device.config{
-      port = port,
-      txQueues = 1,
-      rxQueues = 1
-  }
+  
+  local dev = args.dev[0]
   device.waitForLinks()
   
   -- print statistics for both tx and rx queues
