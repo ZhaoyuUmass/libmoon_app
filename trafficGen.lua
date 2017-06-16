@@ -197,7 +197,12 @@ function rxLatency(rxQueue)
       -- print("received a packet", rxTs, txTs, tonumber(rxTs - txTs) / tscFreq * 10^9)
       
       pktCtr:countPacket(buf)
-      print(pktCtr:getThroughput())       
+      local ctr,_ = pktCtr:getThroughput() 
+      if ctr % 10000 == 0 then
+        local pkt = buf:getUdpPacket()
+        local txTs = pkt.payload.uint64[0]
+        f:write(tostring(tonumber(mg:getCycles() - txTs) / tscFreq * 10^9) .. "\n")
+      end   
     end
     pktCtr:update()
     bufs:freeAll()
