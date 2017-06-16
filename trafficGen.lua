@@ -193,7 +193,7 @@ function rxLatency(rxQueue)
       -- print("received",rxTs)
       -- print("received a packet", rxTs, txTs, tonumber(rxTs - txTs) / tscFreq * 10^9)      
       -- ctr:update()
-      ctr:countPacket(buf)
+      -- ctr:countPacket(buf)
     end
     ctr:update()
     bufs:freeAll()
