@@ -125,6 +125,7 @@ function txSlave(queue, dstMac, rateLimiter)
       -- packet framework allows simple access to fields in complex protocol stacks
       local pkt = buf:getUdpPacket()
       pkt.udp:setSrcPort(SRC_PORT_BASE + math.random(0, NUM_FLOWS - 1))
+      pkt.payload.uint64[0] = lm:getCycles()
     end
     -- UDP checksums are optional, so using just IPv4 checksums would be sufficient here
     -- UDP checksum offloading is comparatively slow: NICs typically do not support calculating the pseudo-header checksum so this is done in SW
