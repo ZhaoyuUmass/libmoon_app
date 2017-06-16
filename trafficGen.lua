@@ -26,6 +26,26 @@ local NUM_PKTS = 10^5
 
 local SRC_IP_SET = {}
 
+-- Helper functions --
+local function integer(a,b)
+  if a == nil and b == nil then
+    return math.random(0, 100)
+  end
+  if b == nil then
+    return math.random(a)
+  end
+  return math.random(a, b)
+end
+
+local function random_ipv4()
+  local str = ''
+  for i=1, 4 do
+    str = str .. integer(0, 255)
+    if i ~= 4 then str = str .. '.' end
+  end
+  return str
+end
+
 -- the configure function is called on startup with a pre-initialized command line parser
 function configure(parser)
   parser:description("Edit the source to modify constants like IPs and ports.")
@@ -221,22 +241,3 @@ function rxLatency(rxQueue)
 end
 
 
--- Helper functions --
-local function integer(a,b)
-  if a == nil and b == nil then
-    return math.random(0, 100)
-  end
-  if b == nil then
-    return math.random(a)
-  end
-  return math.random(a, b)
-end
-
-local function random_ipv4()
-  local str = ''
-  for i=1, 4 do
-    str = str .. integer(0, 255)
-    if i ~= 4 then str = str .. '.' end
-  end
-  return str
-end
