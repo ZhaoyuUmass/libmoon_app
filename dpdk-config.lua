@@ -1,7 +1,7 @@
 DPDKConfig {
   -- configure the CPU cores to use, default: all cores
   --cores = {0, 10, 11, 12, 13, 14, 15},
-  
+  cores = {4, 5, 6, 7},
   -- max number of shared tasks running on core 0
   --sharedCores = 8,
 
@@ -13,10 +13,10 @@ DPDKConfig {
   -- arbitrary DPDK command line options
   -- the following configuration allows multiple DPDK instances (use together with pciWhitelist)
   -- cf. http://dpdk.org/doc/guides/prog_guide/multi_proc_support.html#running-multiple-independent-dpdk-applications
-  --cli = {
-  --  "--file-prefix", "m2",
+  cli = {
+    "--file-prefix", "m2",
   --  "--socket-mem", "512,512",
-  --  "-m", "512"
-  -- }
+    "-m", "2048"
+  }
 
 }
