@@ -95,7 +95,10 @@ function master(args,...)
     -- end
   end
   lm.waitForTasks()
-  device:stop()
+  
+  for i,dev in pairs(args.dev) do
+    dev:stop()
+  end
 end
 
 function txSlave(queue, dstMac, rateLimiter)
