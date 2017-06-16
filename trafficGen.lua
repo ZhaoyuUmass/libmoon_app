@@ -181,11 +181,10 @@ function rxLatency(rxQueue)
   
   -- use whatever filter appropriate for your packet type
   -- queue:filterUdpTimestamps()
-  -- local ctr = stats:newDevRxCounter("Received Traffic", rxQueue.dev, "plain")
+  local ctr = stats:newDevRxCounter("Received Traffic", rxQueue.dev, "plain")
   local bufs = memory.bufArray()
   while mg.running() do
     local rx = rxQueue:tryRecv(bufs, 1000)
-    --[[
     for i = 1, rx do
       local pkt = bufs[i]:getUdpPacket()
 
@@ -194,10 +193,12 @@ function rxLatency(rxQueue)
       -- print("received",rxTs)
       -- print("received a packet", rxTs, txTs, tonumber(rxTs - txTs) / tscFreq * 10^9)      
       -- ctr:update()
+      ctr:countPacket(buf)
     end
-    ]]--
+    ctr:update()
+    bufs:freeAll()
   end
-  -- ctr:finalize()
+  ctr:finalize()
   --[[
   local f = io.open("rcvd.txt", "w+")
   for i, v in ipairs(tm_rcvd) do
