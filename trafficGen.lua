@@ -66,6 +66,7 @@ function master(args,...)
   
   -- start tx tasks
   for i,dev in pairs(args.dev) do 
+    --[[
     if i == 1 then
       -- the first port is used for a latency task
       -- initalize local queues
@@ -76,6 +77,7 @@ function master(args,...)
       lm.startTask("txLatency", txQueue, DST_MAC, rateLimiter)
       lm.startTask("rxLatency", rxQueue)
     else
+    ]]--
       -- the rest of the queue is used for sending traffic      
       -- initialize a local queue: local is very important here
       local queue = dev:getTxQueue(0)    
@@ -90,7 +92,7 @@ function master(args,...)
       else 
         lm.startTask("txSlave", queue, args.mac, rateLimiter)
       end
-    end
+    -- end
   end
   lm.waitForTasks()
   device:stop()
