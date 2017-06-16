@@ -21,8 +21,6 @@ local DST_PORT      = 1234
 local NUM_FLOWS     = 1000
 local pattern       = "cbr" -- traffic pattern, default is cbr, another option is poisson
 
-local EXP_SECONDS = 20 -- experiment time: 20 seconds
-
 local SRC_IP_SET = {}
 
 -- Helper functions --
@@ -90,7 +88,7 @@ function master(args, ...)
   device.waitForLinks()
   
   -- print statistics for both tx and rx queues
-  stats.startStatsTask{txDevices = args.dev}
+  -- stats.startStatsTask{txDevices = args.dev}
   
   -- start tx tasks
   for i,dev in pairs(args.dev) do
@@ -132,9 +130,9 @@ function txSlave(queue, dstMac, rateLimiter)
   end)
   -- a bufArray is just a list of buffers from a mempool that is processed as a single batch
   local bufs = mempool:bufArray()
-  local startTime = lm:getTime()
-  local thres = EXP_SECONDS * 10^9/lm:getCyclesFrequency()
-  while lm.running() and (lm:getTime() - startTime) < thres do -- check if Ctrl+c was pressed
+  
+  local pktCtr = stats:newPktTxCounter("Packets sent", "plain")
+  while lm.running() do -- check if Ctrl+c was pressed
     -- this actually allocates some buffers from the mempool the array is associated with
     -- this has to be repeated for each send because sending is asynchronous, we cannot reuse the old buffers here
     bufs:alloc(PKT_LEN)
@@ -143,6 +141,7 @@ function txSlave(queue, dstMac, rateLimiter)
       local pkt = buf:getUdpPacket()
       pkt.udp:setSrcPort(SRC_PORT_BASE + math.random(0, NUM_FLOWS - 1))
       pkt.payload.uint64[0] = lm:getCycles()
+      pktCtr:countPacket(buf)
     end
     -- UDP checksums are optional, so using just IPv4 checksums would be sufficient here
     -- UDP checksum offloading is comparatively slow: NICs typically do not support calculating the pseudo-header checksum so this is done in SW
@@ -150,6 +149,7 @@ function txSlave(queue, dstMac, rateLimiter)
     -- send out all packets and frees old bufs that have been sent
     -- queue:send(bufs)
     rateLimiter:send(bufs)
+    pktCtr:update()
   end
   
   lm.sleepMillis(500)
@@ -166,7 +166,7 @@ function rxLatency(rxQueue)
   
   -- use whatever filter appropriate for your packet type
   -- queue:filterUdpTimestamps()
-  local pktCtr = stats:newPktRxCounter("Packets counted", "plain")
+  local pktCtr = stats:newPktRxCounter("Packets received", "plain")
   local bufs = memory.bufArray()
   -- Dump the rxTs and txTs to a local file
   local f = io.open("rcvd.txt", "w+")
