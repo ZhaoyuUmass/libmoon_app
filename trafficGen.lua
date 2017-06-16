@@ -93,6 +93,7 @@ function master(args,...)
     end
   end
   lm.waitForTasks()
+  device:stop()
 end
 
 function txSlave(queue, dstMac, rateLimiter)
