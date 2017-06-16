@@ -134,13 +134,13 @@ function txSlave(queue, dstMac, rateLimiter, numFlows)
   while lm.running() do -- check if Ctrl+c was pressed
     -- this actually allocates some buffers from the mempool the array is associated with
     -- this has to be repeated for each send because sending is asynchronous, we cannot reuse the old buffers here
-    bufs:alloc(PKT_LEN)
+    bufs:alloc(100)
     for i, buf in ipairs(bufs) do
       -- packet framework allows simple access to fields in complex protocol stacks
       pktCtr:countPacket(buf)
       local cnt, _ = pktCtr:getThroughput()
       local pkt = buf:getUdpPacket()
-      print(math.floor(cnt/NUM_FLOWS), SRC_IP_SET[math.floor(cnt/NUM_FLOWS)])
+      print(cnt, math.floor(cnt/NUM_FLOWS), SRC_IP_SET[math.floor(cnt/NUM_FLOWS)])
       pkt.ip4:setSrcString(tostring(SRC_IP_SET[math.ceil(cnt/NUM_FLOWS)]))
       pkt.udp:setSrcPort(SRC_PORT_BASE + cnt% NUM_FLOWS )
       pkt.payload.uint64[0] = lm:getCycles()
