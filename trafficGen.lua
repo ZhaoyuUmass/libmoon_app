@@ -44,7 +44,7 @@ local function random_ipv4()
 end
 
 local function convert_ip_2_int(ip)
-  local o1,o2,o3,o4 = str:match("(%d+)%.(%d+)%.(%d+)%.(%d+)")
+  local o1,o2,o3,o4 = ip:match("(%d+)%.(%d+)%.(%d+)%.(%d+)")
   return 2^24*o1 + 2^16*o2 + 2^8*o3 + o4
 end
 
