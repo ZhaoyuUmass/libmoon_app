@@ -166,7 +166,6 @@ function txLatency(queue, dstMac, limiter)
     limiter:send(bufs)
     ctr:update()
     j = j+1
-    print(j)
   end
   
   local f = io.open("sent.txt", "w+")
