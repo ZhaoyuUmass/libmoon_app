@@ -83,7 +83,8 @@ function master(args,...)
     end
   end
   -- start rx task
-  lm.startTask("rxLatency", args.dev[0]:getRxQueue(0))
+  -- lm.startTask("rxLatency", args.dev[0]:getRxQueue(0))
+  
   lm.waitForTasks()
   
   for i,dev in pairs(args.dev) do
