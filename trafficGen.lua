@@ -184,21 +184,18 @@ function rxLatency(rxQueue)
   -- local ctr = stats:newDevRxCounter("Received Traffic", rxQueue.dev, "plain")
   local bufs = memory.bufArray()
   while mg.running() do
-    local rx = rxQueue:tryRecv(bufs, 100)
+    local rx = rxQueue:tryRecv(bufs, 1000)
+    --[[
     for i = 1, rx do
       local pkt = bufs[i]:getUdpPacket()
-      -- local dst = pkt.eth:getDst()
-      -- local src = pkt.eth:getSrc()
-      -- local rxTs = bufs[i].udata64
-      -- local txTs = bufs[i]:getSoftwareTxTimestamp()
-      -- print("received a packet with payload", tonumber(pkt.payload.uint64[0]))
-      
+
       local rxTs = pkt.payload.uint64[0]
       -- tm_rcvd[#tm_rcvd+1] = rxTs
       -- print("received",rxTs)
       -- print("received a packet", rxTs, txTs, tonumber(rxTs - txTs) / tscFreq * 10^9)      
       -- ctr:update()
     end
+    ]]--
   end
   -- ctr:finalize()
   --[[
