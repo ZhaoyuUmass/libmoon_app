@@ -22,7 +22,7 @@ local NUM_FLOWS     = 1000
 local pattern       = "cbr" -- traffic pattern, default is cbr, another option is poisson
 
 local PKT_SIZE = 60
-local NUM_PKTS = 10^4
+local NUM_PKTS = 10^6
 
 -- the configure function is called on startup with a pre-initialized command line parser
 function configure(parser)
@@ -137,7 +137,11 @@ function txLatency(queue, dstMac, limiter)
       -- this is a right setting for server and client on different hosts
       ethSrc = queue, -- MAC of the tx device
       ethDst = dstMac,
-      pktLength = PKT_SIZE   
+      ip4Src = SRC_IP,
+      ip4Dst = DST_IP,
+      udpSrc = SRC_PORT,
+      udpDst = DST_PORT,
+      pktLength = PKT_LEN  
     }
   end)
   mg.sleepMillis(1000) -- ensure that the load task is running
@@ -145,7 +149,8 @@ function txLatency(queue, dstMac, limiter)
   local ctr = stats:newDevTxCounter("Load Traffic", queue.dev, "plain")
   local tm_sent = {}
   
-  while mg.running() do
+  
+  while mg.running() and j < NUM_PKTS do
     bufs:alloc(1)
     for i, buf in ipairs(bufs) do
       -- packet framework allows simple access to fields in complex protocol stacks
@@ -154,11 +159,12 @@ function txLatency(queue, dstMac, limiter)
       local tm = mg:getCycles()
       pkt.payload.uint64[0] = tm
       tm_sent[#tm_sent+1] = tm
-      print("payload:",tonumber(pkt.payload.uint64[0]))
+      -- print("payload:",tonumber(pkt.payload.uint64[0]))
     end
     bufs:offloadUdpChecksums()
     limiter:send(bufs)
     ctr:update()
+    j = j+1
   end
   
   local f = io.open("sent.txt", "w+")
@@ -167,7 +173,8 @@ function txLatency(queue, dstMac, limiter)
   end
   f:close()
   ctr:finalize()
-  mg.sleepMillis(5000)
+  
+  mg.sleepMillis(500)
   mg.stop()
 end
 
