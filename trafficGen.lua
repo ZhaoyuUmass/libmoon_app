@@ -184,7 +184,7 @@ function rxLatency(rxQueue)
   local ctr = stats:newDevRxCounter("Received Traffic", rxQueue.dev, "plain")
   local bufs = memory.bufArray()
   while mg.running() do
-    local rx = rxQueue:tryRecv(bufs, 1000)
+    local rx = rxQueue:tryRecv(bufs)
     for i = 1, rx do
       local buf = bufs[i]
       local pkt = buf:getUdpPacket()
