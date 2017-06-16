@@ -138,9 +138,7 @@ function txSlave(queue, dstMac, rateLimiter, numFlows)
     -- this has to be repeated for each send because sending is asynchronous, we cannot reuse the old buffers here
     bufs:alloc(100)
     for i, buf in ipairs(bufs) do
-      -- packet framework allows simple access to fields in complex protocol stacks
-      pktCtr:countPacket(buf)
-      
+      -- packet framework allows simple access to fields in complex protocol stacks      
       --[[
       local cnt, _ = pktCtr:getThroughput()
       if cnt % NUM_FLOWS == 0 then
@@ -151,6 +149,7 @@ function txSlave(queue, dstMac, rateLimiter, numFlows)
       -- pkt.ip4:setSrcString(currentIp)
       -- pkt.udp:setSrcPort(cnt % NUM_FLOWS )
       pkt.payload.uint64[0] = lm:getCycles()
+      pktCtr:countPacket(buf)
     end
     -- UDP checksums are optional, so using just IPv4 checksums would be sufficient here
     -- UDP checksum offloading is comparatively slow: NICs typically do not support calculating the pseudo-header checksum so this is done in SW
