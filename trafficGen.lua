@@ -131,7 +131,7 @@ function txSlave(queue, dstMac, rateLimiter, numFlows)
     print(i,v)
   end
   ]]--
-  
+  local currentIp = SRC_IP_SET[0]
   local pktCtr = stats:newPktTxCounter("Packets sent", "plain")
   while lm.running() do -- check if Ctrl+c was pressed
     -- this actually allocates some buffers from the mempool the array is associated with
@@ -141,9 +141,12 @@ function txSlave(queue, dstMac, rateLimiter, numFlows)
       -- packet framework allows simple access to fields in complex protocol stacks
       pktCtr:countPacket(buf)
       local cnt, _ = pktCtr:getThroughput()
+      if cnt % NUM_FLOWS == 0 then
+        currentIp = SRC_IP_SET[math.ceil(cnt/NUM_FLOWS)%TOTAL_IPS+1]
+      end
       local pkt = buf:getUdpPacket()
-      pkt.ip4:setSrcString(SRC_IP_SET[math.ceil(cnt/NUM_FLOWS)%TOTAL_IPS+1])
-      pkt.udp:setSrcPort(SRC_PORT_BASE + cnt% NUM_FLOWS )
+      pkt.ip4:setSrcString(currentIp)
+      pkt.udp:setSrcPort(cnt % NUM_FLOWS )
       pkt.payload.uint64[0] = lm:getCycles()
     end
     -- UDP checksums are optional, so using just IPv4 checksums would be sufficient here
