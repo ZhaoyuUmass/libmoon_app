@@ -121,8 +121,8 @@ function txSlave(queue, dstMac, rateLimiter, numFlows)
   local bufs = mempool:bufArray()
   
   local SRC_IP_SET = {}
-  local num = math.ceil(numFlows/NUM_FLOWS)
-  for i = 1,num do
+  local TOTAL_IPS = math.ceil(numFlows/NUM_FLOWS)
+  for i = 1, TOTAL_IPS do
     SRC_IP_SET[#SRC_IP_SET+1] = random_ipv4()
   end
   print("SRC_IP_SET:")
@@ -141,11 +141,9 @@ function txSlave(queue, dstMac, rateLimiter, numFlows)
       local cnt, _ = pktCtr:getThroughput()
       local pkt = buf:getUdpPacket()
       print(cnt, math.floor(cnt/NUM_FLOWS), SRC_IP_SET[math.floor(cnt/NUM_FLOWS)])
-      -- if SRC_IP_SET[math.ceil(cnt/NUM_FLOWS)] then
-        pkt.ip4:setSrcString(SRC_IP_SET[math.ceil(cnt/NUM_FLOWS)])
-        pkt.udp:setSrcPort(SRC_PORT_BASE + cnt% NUM_FLOWS )
-        pkt.payload.uint64[0] = lm:getCycles()
-      -- end
+      pkt.ip4:setSrcString(SRC_IP_SET[math.ceil(cnt/NUM_FLOWS)%TOTAL_IPS])
+      pkt.udp:setSrcPort(SRC_PORT_BASE + cnt% NUM_FLOWS )
+      pkt.payload.uint64[0] = lm:getCycles()
     end
     -- UDP checksums are optional, so using just IPv4 checksums would be sufficient here
     -- UDP checksum offloading is comparatively slow: NICs typically do not support calculating the pseudo-header checksum so this is done in SW
