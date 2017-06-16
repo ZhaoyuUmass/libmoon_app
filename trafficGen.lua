@@ -59,7 +59,7 @@ function master(args, port, ...)
     args.dev[i] = dev
   end
   local dev = device.config{
-      port = dev,
+      port = port,
       txQueues = 1,
       rxQueues = 1
   }
