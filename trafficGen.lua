@@ -18,7 +18,7 @@ local SRC_IP        = "10.0.0.1"
 local DST_IP        = "10.0.1.1"
 local SRC_PORT_BASE = 1234 -- actual port will be SRC_PORT_BASE * random(NUM_FLOWS)
 local DST_PORT      = 1234
-local NUM_FLOWS     = 1000
+local NUM_FLOWS     = 1024
 local pattern       = "cbr" -- traffic pattern, default is cbr, another option is poisson
  
 local SAMPLE_RATE = 10000
@@ -43,6 +43,10 @@ local function random_ipv4()
   return str
 end
 
+local function convert_ip_2_int(ip)
+  local o1,o2,o3,o4 = str:match("(%d+)%.(%d+)%.(%d+)%.(%d+)")
+  return 2^24*o1 + 2^16*o2 + 2^8*o3 + o4
+end
 
 -- the configure function is called on startup with a pre-initialized command line parser
 function configure(parser)
@@ -123,14 +127,14 @@ function txSlave(queue, dstMac, rateLimiter, numFlows)
   local SRC_IP_SET = {}
   local TOTAL_IPS = math.ceil(numFlows/NUM_FLOWS)
   for i = 1, TOTAL_IPS do
-    SRC_IP_SET[#SRC_IP_SET+1] = random_ipv4()
+    SRC_IP_SET[#SRC_IP_SET+1] = convert_ip_2_int(random_ipv4())
   end
-  --[[
+
   print("SRC_IP_SET:")
   for i,v in ipairs(SRC_IP_SET) do
     print(i,v)
   end
-  ]]--
+
   local currentIp = SRC_IP_SET[1]
   local pktCtr = stats:newPktTxCounter("Packets sent", "plain")
   while lm.running() do -- check if Ctrl+c was pressed
@@ -146,8 +150,8 @@ function txSlave(queue, dstMac, rateLimiter, numFlows)
         currentIp = SRC_IP_SET[math.ceil(cnt/NUM_FLOWS)%TOTAL_IPS+1]
       end
       local pkt = buf:getUdpPacket()
-      -- pkt.ip4:setSrcString(currentIp)
-      pkt.udp:setSrcPort(cnt % NUM_FLOWS )
+      pkt.ip4:setSrc(currentIp)
+      pkt.udp:setSrcPort(SRC_PORT_BASE + cnt % NUM_FLOWS )
       pkt.payload.uint64[0] = lm:getCycles()
       
     end
