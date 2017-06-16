@@ -149,7 +149,7 @@ function txLatency(queue, dstMac, limiter)
   local ctr = stats:newDevTxCounter("Load Traffic", queue.dev, "plain")
   local tm_sent = {}
   
-  
+  local j = 0
   while mg.running() and j < NUM_PKTS do
     bufs:alloc(1)
     for i, buf in ipairs(bufs) do
