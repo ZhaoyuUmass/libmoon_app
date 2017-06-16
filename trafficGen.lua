@@ -62,7 +62,7 @@ function master(args, ...)
   device.waitForLinks()
   
   -- print statistics for both tx and rx queues
-  stats.startStatsTask{devices = args.dev}
+  stats.startStatsTask{txDevices = args.dev}
   
   -- start tx tasks
   for i,dev in pairs(args.dev) do
