@@ -207,7 +207,7 @@ function rxLatency(rxQueue)
   ]]--
 end
 
-
+--[[
 -- Helper functions --
 function integer(a,b)
   if a == nil and b == nil then
@@ -227,3 +227,4 @@ function random_ipv4()
   end
   return str
 end
+]]--
