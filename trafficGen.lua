@@ -194,10 +194,10 @@ function rxLatency(rxQueue)
       -- tm_rcvd[#tm_rcvd+1] = rxTs
       print("received", rxTs)
       -- print("received a packet", rxTs, txTs, tonumber(rxTs - txTs) / tscFreq * 10^9)      
-      -- ctr:update()
-      ctr:countPacket(buf)
+      ctr:update()
+      -- ctr:countPacket(buf)
     end
-    ctr:update()
+    -- ctr:update()
     bufs:freeAll()
   end
   ctr:finalize()
