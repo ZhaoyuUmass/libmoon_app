@@ -58,18 +58,13 @@ function master(args, ...)
     }
     args.dev[i] = dev
   end
-  
-  local dev = args.dev[0]
+
   device.waitForLinks()
   
   -- print statistics for both tx and rx queues
-  stats.startStatsTask{devices = device}
+  stats.startStatsTask{devices = args.dev}
   
-  local txQueue = dev:getTxQueue(0)  
-  local rateLimiter = limiter:new(txQueue, pattern, 1 / args.rate * 1000)
-  lm.startTask("txSlave", device:get(txQueue, DST_MAC, rateLimiter) )
   -- start tx tasks
-  --[[
   for i,dev in pairs(args.dev) do
     -- initialize a local queue: local is very important here
     local queue = dev:getTxQueue(0)    
@@ -82,10 +77,10 @@ function master(args, ...)
     else
       print("no mac specified")
     end
+    
+    lm.startTask("rxLatency", dev:getRxQueue(0))
   end
-  ]]--
-  -- start rx task
-  lm.startTask("rxLatency", device:getRxQueue(0))
+  
   
   lm.waitForTasks()
   
