@@ -22,7 +22,7 @@ local NUM_FLOWS     = 1000
 local pattern       = "cbr" -- traffic pattern, default is cbr, another option is poisson
 
 local PKT_SIZE = 60
-local NUM_PKTS = 10^6
+local NUM_PKTS = 10^5
 
 -- the configure function is called on startup with a pre-initialized command line parser
 function configure(parser)
@@ -155,7 +155,7 @@ function txLatency(queue, dstMac, limiter)
     for i, buf in ipairs(bufs) do
       -- packet framework allows simple access to fields in complex protocol stacks
       local pkt = buf:getUdpPacket()
-      pkt.udp:setSrcPort(SRC_PORT_BASE + math.random(0, NUM_FLOWS - 1))
+      pkt.udp:setSrcPort(SRC_PORT_BASE)
       local tm = mg:getCycles()
       pkt.payload.uint64[0] = tm
       tm_sent[#tm_sent+1] = tm
@@ -165,6 +165,7 @@ function txLatency(queue, dstMac, limiter)
     limiter:send(bufs)
     ctr:update()
     j = j+1
+    print(j)
   end
   
   local f = io.open("sent.txt", "w+")
