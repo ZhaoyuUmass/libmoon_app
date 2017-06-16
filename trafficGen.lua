@@ -14,15 +14,14 @@ local limiter = require "software-ratecontrol"
 -- set addresses here
 local DST_MAC       = nil -- resolved via ARP on GW_IP or DST_IP, can be overriden with a string here
 local PKT_LEN       = 60
-local SRC_IP        = "10.0.1.5"
-local DST_IP        = "10.0.1.4"
+local SRC_IP        = "10.0.0.1"
+local DST_IP        = "10.0.1.1"
 local SRC_PORT_BASE = 1234 -- actual port will be SRC_PORT_BASE * random(NUM_FLOWS)
 local DST_PORT      = 1234
 local NUM_FLOWS     = 1000
 local pattern       = "cbr" -- traffic pattern, default is cbr, another option is poisson
 
-local PKT_SIZE = 60
-local NUM_PKTS = 10^5
+local EXP_SECONDS = 20 -- experiment time: 20 seconds
 
 local SRC_IP_SET = {}
 
@@ -46,6 +45,7 @@ local function random_ipv4()
   return str
 end
 
+
 -- the configure function is called on startup with a pre-initialized command line parser
 function configure(parser)
   parser:description("Edit the source to modify constants like IPs and ports.")
@@ -53,7 +53,6 @@ function configure(parser)
   parser:option("-f --flows", "Number of flows per device."):args(1):convert(tonumber):default(1000)
   parser:option("-r --rate", "Transmit rate in Mbit/s per device."):args(1):convert(tonumber):default(1)
   parser:option("-m --mac", "destination MAC"):args(1)
-  -- parser:flag("-t --tcp", "Use TCP.")
   parser:flag("-l --latency", "Measure latency")
   return parser:parse()
 end
@@ -133,7 +132,9 @@ function txSlave(queue, dstMac, rateLimiter)
   end)
   -- a bufArray is just a list of buffers from a mempool that is processed as a single batch
   local bufs = mempool:bufArray()
-  while lm.running() do -- check if Ctrl+c was pressed
+  local startTime = lm:getTime()
+  local thres = EXP_SECONDS * 10^9/lm:getCyclesFrequency()
+  while lm.running() and (lm:getTime() - startTime) < thres do -- check if Ctrl+c was pressed
     -- this actually allocates some buffers from the mempool the array is associated with
     -- this has to be repeated for each send because sending is asynchronous, we cannot reuse the old buffers here
     bufs:alloc(PKT_LEN)
@@ -150,60 +151,18 @@ function txSlave(queue, dstMac, rateLimiter)
     -- queue:send(bufs)
     rateLimiter:send(bufs)
   end
+  
+  lm.sleepMillis(500)
+  lm.stop()
 end
 
-function txLatency(queue, dstMac, limiter)
-  local mem = memory.createMemPool(function(buf)
-    -- just to use the default filter here
-    -- you can use whatever packet type you want
-    buf:getUdpPacket():fill{
-      -- this is a right setting for server and client on different hosts
-      ethSrc = queue, -- MAC of the tx device
-      ethDst = dstMac,
-      ip4Src = SRC_IP,
-      ip4Dst = DST_IP,
-      udpSrc = SRC_PORT,
-      udpDst = DST_PORT,
-      pktLength = PKT_LEN  
-    }
-  end)
-  mg.sleepMillis(1000) -- ensure that the load task is running
-  local bufs = mem:bufArray()
-  local ctr = stats:newDevTxCounter("Load Traffic", queue.dev, "plain")
-  local tm_sent = {}
-  
-  local j = 0
-  while mg.running() and j < NUM_PKTS do
-    bufs:alloc(1)
-    for i, buf in ipairs(bufs) do
-      -- packet framework allows simple access to fields in complex protocol stacks
-      local pkt = buf:getUdpPacket()
-      pkt.udp:setSrcPort(SRC_PORT_BASE)
-      local tm = mg:getCycles()
-      pkt.payload.uint64[0] = tm
-      tm_sent[#tm_sent+1] = tm
-      -- print("payload:",tonumber(pkt.payload.uint64[0]))
-    end
-    bufs:offloadUdpChecksums()
-    limiter:send(bufs)
-    ctr:update()
-    j = j+1
-  end
-  
-  local f = io.open("sent.txt", "w+")
-  for i, v in ipairs(tm_sent) do
-    f:write(tostring(v) .. "\n")
-  end
-  f:close()
-  ctr:finalize()
-  
-  mg.sleepMillis(500)
-  mg.stop()
-end
 
 function rxLatency(rxQueue)
   local tscFreq = mg.getCyclesFrequency()
   print("tscFreq",tscFreq)
+  for i,v in ipairs(SRC_IP_SET) do
+    print(i,v)
+  end
   
   -- use whatever filter appropriate for your packet type
   -- queue:filterUdpTimestamps()
@@ -216,16 +175,9 @@ function rxLatency(rxQueue)
     local rx = rxQueue:tryRecv(bufs)
     for i = 1, rx do
       local buf = bufs[i]
-        
-      --[[      
-      local pkt = buf:getUdpPacket()
-      local txTs = pkt.payload.uint64[0]
-      f:write(tostring(txTs) .. tostring(mg:getCycles()) .. "\n")
-      ]]--
-      -- print("received a packet", rxTs, txTs, tonumber(rxTs - txTs) / tscFreq * 10^9)
-      
       pktCtr:countPacket(buf)
       local ctr,_ = pktCtr:getThroughput() 
+      -- sample packet to calculate latency
       if ctr % 10000 == 0 then
         local rxTs = mg:getCycles()
         local pkt = buf:getUdpPacket()
