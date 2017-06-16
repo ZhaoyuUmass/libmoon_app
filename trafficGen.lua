@@ -187,7 +187,9 @@ function rxLatency(rxQueue)
     local rx = rxQueue:tryRecv(bufs)
     for i = 1, rx do
       local buf = bufs[i]
-      ctr:countPacket(buf)
+      if buf then
+        ctr:countPacket(buf)
+      end
       local pkt = buf:getUdpPacket()
       local rxTs = pkt.payload.uint64[0]
       
