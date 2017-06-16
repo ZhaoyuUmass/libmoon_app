@@ -177,44 +177,39 @@ function rxLatency(rxQueue)
   local tscFreq = mg.getCyclesFrequency()
   print("tscFreq",tscFreq)
   
-  -- local tm_rcvd = {}
-  
   -- use whatever filter appropriate for your packet type
   -- queue:filterUdpTimestamps()
-  -- local ctr = stats:newDevRxCounter("Received Traffic", rxQueue.dev, "plain")
   local pktCtr = stats:newPktRxCounter("Packets counted", "plain")
   local bufs = memory.bufArray()
+  -- Let's try to dump the rxTs and txTs to a local file
+  local f = io.open("rcvd.txt", "w+")
+  
   while mg.running() do
     local rx = rxQueue:tryRecv(bufs)
     for i = 1, rx do
-      local buf = bufs[i]
+      local buf = bufs[i]      
             
       local pkt = buf:getUdpPacket()
-      local rxTs = pkt.payload.uint64[0]
+      local txTs = pkt.payload.uint64[0]
+      f:write(tostring(txTs) .. tostring(mg:getCycles()) .. "\n")
       
       -- tm_rcvd[#tm_rcvd+1] = rxTs
       -- print("received", rxTs)
-      -- print("received a packet", rxTs, txTs, tonumber(rxTs - txTs) / tscFreq * 10^9)      
+      -- print("received a packet", rxTs, txTs, tonumber(rxTs - txTs) / tscFreq * 10^9)
       
-      pktCtr:countPacket(buf)     
+      pktCtr:countPacket(buf)           
     end
     pktCtr:update()
-    -- ctr:update()
     bufs:freeAll()
   end
   pktCtr:finalize()
-  --[[
-  local f = io.open("rcvd.txt", "w+")
-  for i, v in ipairs(tm_rcvd) do
-    f:write(tostring(v) .. "\n")
-  end
+  
   f:close() 
-  ]]--
 end
 
---[[
+
 -- Helper functions --
-function integer(a,b)
+local function integer(a,b)
   if a == nil and b == nil then
     return math.random(0, 100)
   end
@@ -224,7 +219,7 @@ function integer(a,b)
   return math.random(a, b)
 end
 
-function random_ipv4()
+local function random_ipv4()
   local str = ''
   for i=1, 4 do
     str = str .. integer(0, 255)
@@ -232,4 +227,3 @@ function random_ipv4()
   end
   return str
 end
-]]--
