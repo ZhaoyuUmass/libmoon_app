@@ -181,13 +181,14 @@ function rxLatency(rxQueue)
   -- queue:filterUdpTimestamps()
   local pktCtr = stats:newPktRxCounter("Packets counted", "plain")
   local bufs = memory.bufArray()
-  -- Let's try to dump the rxTs and txTs to a local file
+  -- Dump the rxTs and txTs to a local file
   local f = io.open("rcvd.txt", "w+")
   
   while mg.running() do
     local rx = rxQueue:tryRecv(bufs)
     for i = 1, rx do
-      local buf = bufs[i]      
+      local buf = bufs[i]
+        
       --[[      
       local pkt = buf:getUdpPacket()
       local txTs = pkt.payload.uint64[0]
@@ -195,7 +196,8 @@ function rxLatency(rxQueue)
       ]]--
       -- print("received a packet", rxTs, txTs, tonumber(rxTs - txTs) / tscFreq * 10^9)
       
-      pktCtr:countPacket(buf)           
+      pktCtr:countPacket(buf)
+      print(pktCtr:getThroughput())       
     end
     pktCtr:update()
     bufs:freeAll()
