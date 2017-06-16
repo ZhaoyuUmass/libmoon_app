@@ -92,8 +92,9 @@ function master(args,...)
       else 
         lm.startTask("txSlave", queue, args.mac, rateLimiter)
       end
-    -- end
   end
+  -- start rx task
+  lm.startTask("rxLatency", dev:getRxQueue(0))
   lm.waitForTasks()
   
   for i,dev in pairs(args.dev) do
@@ -189,11 +190,11 @@ function rxLatency(rxQueue)
   local tscFreq = mg.getCyclesFrequency()
   print("tscFreq",tscFreq)
   
-  local tm_rcvd = {}
+  -- local tm_rcvd = {}
   
   -- use whatever filter appropriate for your packet type
   -- queue:filterUdpTimestamps()
-  local ctr = stats:newDevRxCounter("Received Traffic", rxQueue.dev, "plain")
+  -- local ctr = stats:newDevRxCounter("Received Traffic", rxQueue.dev, "plain")
   local bufs = memory.bufArray()
   while mg.running() do
     local rx = rxQueue:tryRecv(bufs, 100)
@@ -206,19 +207,20 @@ function rxLatency(rxQueue)
       -- print("received a packet with payload", tonumber(pkt.payload.uint64[0]))
       
       local rxTs = pkt.payload.uint64[0]
-      tm_rcvd[#tm_rcvd+1] = rxTs
+      -- tm_rcvd[#tm_rcvd+1] = rxTs
       print("received",rxTS)
       -- print("received a packet", rxTs, txTs, tonumber(rxTs - txTs) / tscFreq * 10^9)      
-      ctr:update()
+      -- ctr:update()
     end
   end
-  ctr:finalize()
-  
+  -- ctr:finalize()
+  --[[
   local f = io.open("rcvd.txt", "w+")
   for i, v in ipairs(tm_rcvd) do
     f:write(tostring(v) .. "\n")
   end
   f:close() 
+  ]]--
 end
 
 
