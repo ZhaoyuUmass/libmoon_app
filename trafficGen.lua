@@ -17,7 +17,7 @@ local PKT_LEN       = 60
 local SRC_IP        = "10.0.0.1"
 local DST_IP        = "10.0.1.1"
 local SRC_PORT_BASE = 1234 -- actual port will be SRC_PORT_BASE * random(NUM_FLOWS)
-local DST_PORT_BASE = 1234
+local DST_PORT_BASE = 2345
 
 local pattern       = "cbr" -- traffic pattern, default is cbr, another option is poisson
 
