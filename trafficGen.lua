@@ -162,7 +162,7 @@ function txSlave(queue, dstMac, rateLimiter, numFlows)
         pkt.udp:setDstPort(DST_PORT_BASE)
         pkt.udp:setSrcPort(SRC_PORT_BASE + cnt%numFlows)
       elseif numFlows < FLOWS_PER_SRC_IP then
-        pkt.udo:setDstPort(DST_PORT_BASE + math.floor((cnt%numFlows)/NUM_FLOWS))
+        pkt.udp:setDstPort(DST_PORT_BASE + math.floor((cnt%numFlows)/NUM_FLOWS))
         pkt.udp:setSrcPort(SRC_PORT_BASE + cnt%numFlows%NUM_FLOWS )
       else
         pkt.udo:setDstPort(DST_PORT_BASE + math.floor(cnt/NUM_FLOWS)%NUM_FLOWS )
