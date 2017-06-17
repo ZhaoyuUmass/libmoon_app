@@ -17,11 +17,14 @@ local PKT_LEN       = 60
 local SRC_IP        = "10.0.0.1"
 local DST_IP        = "10.0.1.1"
 local SRC_PORT_BASE = 1234 -- actual port will be SRC_PORT_BASE * random(NUM_FLOWS)
-local DST_PORT      = 1234
-local NUM_FLOWS     = 1024
+local DST_PORT_BASE = 1234
+
 local pattern       = "cbr" -- traffic pattern, default is cbr, another option is poisson
+
+local NUM_FLOWS     = 1024
+local FLOWS_PER_SRC_IP = NUM_FLOWS*NUM_FLOWS
  
-local SAMPLE_RATE = 10000
+local SAMPLE_RATE = 10000 -- sample latency every 10,000 response
 
 -- Helper functions --
 local function integer(a,b)
@@ -54,8 +57,8 @@ function configure(parser)
   parser:argument("dev", "Devices to use."):args("+"):convert(tonumber)
   parser:option("-f --flows", "Number of flows per device."):args(1):convert(tonumber):default(1000)
   parser:option("-r --rate", "Transmit rate in Mbit/s per device."):args(1):convert(tonumber):default(1)
-  parser:option("-m --mac", "destination MAC"):args(1)
-  parser:flag("-l --latency", "Measure latency")
+  parser:option("-m --mac", "Destination MAC"):args(1)
+  -- parser:flag("-d --dst_port", "Need to set dst port when sending packets")
   return parser:parse()
 end
 
@@ -116,8 +119,8 @@ function txSlave(queue, dstMac, rateLimiter, numFlows)
       ethDst = dstMac,
       ip4Src = SRC_IP,
       ip4Dst = DST_IP,
-      udpSrc = SRC_PORT,
-      udpDst = DST_PORT,
+      -- udpSrc = SRC_PORT,
+      -- udpDst = DST_PORT,
       pktLength = PKT_LEN
     }
   end)
@@ -125,7 +128,7 @@ function txSlave(queue, dstMac, rateLimiter, numFlows)
   local bufs = mempool:bufArray()
   
   local SRC_IP_SET = {}
-  local TOTAL_IPS = math.ceil(numFlows/NUM_FLOWS)
+  local TOTAL_IPS = math.ceil(numFlows/FLOWS_PER_SRC_IP)
   for i = 1, TOTAL_IPS do
     SRC_IP_SET[#SRC_IP_SET+1] = convert_ip_2_int(random_ipv4())
   end
@@ -134,7 +137,7 @@ function txSlave(queue, dstMac, rateLimiter, numFlows)
   for i,v in ipairs(SRC_IP_SET) do
     print(i,v)
   end
-
+  
   local currentIp = SRC_IP_SET[1]
   local pktCtr = stats:newPktTxCounter("Packets sent", "plain")
   while lm.running() do -- check if Ctrl+c was pressed
@@ -146,14 +149,23 @@ function txSlave(queue, dstMac, rateLimiter, numFlows)
       
       pktCtr:countPacket(buf)
       local cnt, _ = pktCtr:getThroughput()
-      if cnt % NUM_FLOWS == 0 then
-        currentIp = SRC_IP_SET[math.ceil(cnt/NUM_FLOWS)%TOTAL_IPS+1]
+      if cnt % FLOWS_PER_SRC_IP == 0 then
+        currentIp = SRC_IP_SET[math.ceil(cnt/FLOWS_PER_SRC_IP)%TOTAL_IPS+1]
       end
       local pkt = buf:getUdpPacket()
       pkt.ip4:setSrc(currentIp)
-      if numFlows<NUM_FLOWS then
-        pkt.udp:setSrcPort(SRC_PORT_BASE + cnt%numFlows) 
+      
+      --[[
+      TODO: put the math here
+      ]]--
+      if numFlows< NUM_FLOWS then
+        pkt.udp:setDstPort(DST_PORT_BASE)
+        pkt.udp:setSrcPort(SRC_PORT_BASE + cnt%numFlows)
+      elseif numFlows < FLOWS_PER_SRC_IP then
+        pkt.udo:setDstPort(DST_PORT_BASE + math.floor((cnt%numFlows)/NUM_FLOWS))
+        pkt.udp:setSrcPort(SRC_PORT_BASE + cnt%numFlows%NUM_FLOWS )
       else
+        pkt.udo:setDstPort(DST_PORT_BASE + math.floor(cnt/NUM_FLOWS)%NUM_FLOWS )
         pkt.udp:setSrcPort(SRC_PORT_BASE + cnt%NUM_FLOWS )
       end
       pkt.payload.uint64[0] = lm:getCycles()
