@@ -165,7 +165,7 @@ function txSlave(queue, dstMac, rateLimiter, numFlows)
         pkt.udp:setDstPort(DST_PORT_BASE + math.floor((cnt%numFlows)/NUM_FLOWS))
         pkt.udp:setSrcPort(SRC_PORT_BASE + cnt%numFlows%NUM_FLOWS )
       else
-        pkt.udo:setDstPort(DST_PORT_BASE + math.floor(cnt/NUM_FLOWS)%NUM_FLOWS )
+        pkt.udp:setDstPort(DST_PORT_BASE + math.floor(cnt/NUM_FLOWS)%NUM_FLOWS )
         pkt.udp:setSrcPort(SRC_PORT_BASE + cnt%NUM_FLOWS )
       end
       pkt.payload.uint64[0] = lm:getCycles()
