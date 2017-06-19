@@ -115,8 +115,8 @@ function txSlave(queue, dstMac, rateLimiter, numFlows)
   local mempool = memory.createMemPool(function(buf)
     buf:getUdpPacket():fill{
       -- fields not explicitly set here are initialized to reasonable defaults
-      -- ethSrc = queue, -- MAC of the tx device
-      ethSrc = "11:22:33:44:55:66", -- a fake mac address
+      ethSrc = queue, -- MAC of the tx device
+      -- ethSrc = "11:22:33:44:55:66", -- a fake mac address
       ethDst = dstMac,
       ip4Src = SRC_IP,
       ip4Dst = DST_IP,
