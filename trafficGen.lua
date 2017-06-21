@@ -13,7 +13,7 @@ local limiter = require "software-ratecontrol"
 
 -- set addresses here
 local DST_MAC       = nil -- resolved via ARP on GW_IP or DST_IP, can be overriden with a string here
-local PKT_LEN       = 60
+local PKT_LEN       = 60  -- max size: 1496
 local SRC_IP        = "10.0.0.1"
 local DST_IP        = "10.0.1.1"
 local SRC_PORT_BASE = 1234 -- actual port will be SRC_PORT_BASE * random(NUM_FLOWS)
@@ -82,26 +82,48 @@ function master(args, ...)
       rxQueues = 1
     }
     args.dev[i] = dev
-  end
+  end  
 
+  
   device.waitForLinks()
   
-  -- start tx tasks
-  for i,dev in pairs(args.dev) do
-    -- initialize a local queue: local is very important here
-    local queue = dev:getTxQueue(0)    
-    -- the software rate limiter always works, but it can only scale up to 5.55Mpps (64b packet) with Intel 82599 NIC on EC2
-    local rateLimiter = limiter:new(queue, pattern, 1 / args.rate * 1000)
-    if DST_MAC then
-      lm.startTask("txSlave", queue, DST_MAC, rateLimiter, args.flows) 
-    elseif args.mac then
-      lm.startTask("txSlave", queue, args.mac, rateLimiter, args.flows)
-    else
-      print("no mac specified")
+  if table.getn(args.dev) % 2 == 1 then
+    -- start tx tasks
+    for i,dev in pairs(args.dev) do
+      -- initialize a local queue: local is very important here
+      local queue = dev:getTxQueue(0)    
+      -- the software rate limiter always works, but it can only scale up to 5.55Mpps (64b packet) with Intel 82599 NIC on EC2
+      local rateLimiter = limiter:new(queue, pattern, 1 / args.rate * 1000)
+      if DST_MAC then
+        lm.startTask("txSlave", queue, DST_MAC, rateLimiter, args.flows) 
+      elseif args.mac then
+        lm.startTask("txSlave", queue, args.mac, rateLimiter, args.flows)
+      else
+        print("no mac specified")
+      end    
+      lm.startTask("rxLatency", dev:getRxQueue(0))
     end
-    
-    lm.startTask("rxLatency", dev:getRxQueue(0))
+  elseif table.getn(args.dev) % 2 == 0 then
+    for i,dev in pairs(args.dev) do
+      if i % 2 == 1 then
+        -- start TX queue
+        local queue = dev:getTxQueue(0) 
+        local rateLimiter = limiter:new(queue, pattern, 1 / args.rate * 1000)
+        if DST_MAC then
+          lm.startTask("txSlave", queue, DST_MAC, rateLimiter, args.flows) 
+        elseif args.mac then
+          lm.startTask("txSlave", queue, args.mac, rateLimiter, args.flows)
+        else
+          print("no mac specified")
+        end
+        
+      else 
+        -- start RX queue
+        lm.startTask("rxLatency", dev:getRxQueue(0))
+      end
+    end
   end
+
     
   lm.waitForTasks()
   
@@ -215,8 +237,6 @@ function rxLatency(rxQueue)
     pktCtr:update()
     bufs:freeAll()
   end
-  pktCtr:finalize() 
-  
-  
+  pktCtr:finalize()   
   f:close() 
 end
