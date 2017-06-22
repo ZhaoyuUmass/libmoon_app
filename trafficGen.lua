@@ -19,12 +19,14 @@ local DST_IP        = "10.0.1.1"
 local SRC_PORT_BASE = 1234 -- actual port will be SRC_PORT_BASE * random(NUM_FLOWS)
 local DST_PORT_BASE = 2345
 
-local pattern       = "cbr" -- traffic pattern, default is cbr, another option is poisson
+local PATTERN       = "cbr" -- traffic pattern, default is cbr, another option is poisson
 
 local NUM_FLOWS     = 1024
 local FLOWS_PER_SRC_IP = NUM_FLOWS*NUM_FLOWS
  
 local SAMPLE_RATE = 10000 -- sample latency every 10,000 response
+
+local TRAFFIC_GEN_PATTERN = "random" -- other option: "round-robin"
 
 -- Helper functions --
 local function integer(a,b)
@@ -157,7 +159,12 @@ function txSlave(queue, dstMac, rateLimiter, numFlows, idx)
   local bufs = mempool:bufArray()
   
   local SRC_IP_SET = {}
-  local TOTAL_IPS = math.ceil(numFlows/FLOWS_PER_SRC_IP)
+  local TOTAL_IPS = 1
+  if TRAFFIC_GEN_PATTERN == "" then
+    TOTAL_IPS = math.ceil(numFlows/FLOWS_PER_SRC_IP)
+  elseif TRAFFIC_GEN_PATTERN == "" then
+    TOTAL_IPS = math.ceil(numFlows/NUM_FLOWS)
+  end
   for i = 1, TOTAL_IPS do
     SRC_IP_SET[#SRC_IP_SET+1] = convert_ip_2_int(random_ipv4())
   end
@@ -169,46 +176,72 @@ function txSlave(queue, dstMac, rateLimiter, numFlows, idx)
   
   local currentIp = SRC_IP_SET[1]
   local pktCtr = stats:newPktTxCounter("Packets sent"..idx, "plain")
-  while lm.running() do -- check if Ctrl+c was pressed
-    -- this actually allocates some buffers from the mempool the array is associated with
-    -- this has to be repeated for each send because sending is asynchronous, we cannot reuse the old buffers here
-    bufs:alloc(PKT_LEN)
-    for i, buf in ipairs(bufs) do
-      -- packet framework allows simple access to fields in complex protocol stacks      
-      
-      pktCtr:countPacket(buf)
-      local cnt, _ = pktCtr:getThroughput()
-      if cnt % FLOWS_PER_SRC_IP == 0 then
-        currentIp = SRC_IP_SET[math.ceil(cnt/FLOWS_PER_SRC_IP)%TOTAL_IPS+1]
+  if TRAFFIC_GEN_PATTERN == "round-robin" then
+    while lm.running() do -- check if Ctrl+c was pressed
+      -- this actually allocates some buffers from the mempool the array is associated with
+      -- this has to be repeated for each send because sending is asynchronous, we cannot reuse the old buffers here
+      bufs:alloc(PKT_LEN)
+      for i, buf in ipairs(bufs) do
+        -- packet framework allows simple access to fields in complex protocol stacks      
+        pktCtr:countPacket(buf)
+        local cnt, _ = pktCtr:getThroughput()
+        if cnt % FLOWS_PER_SRC_IP == 0 then
+          currentIp = SRC_IP_SET[math.ceil(cnt/FLOWS_PER_SRC_IP)%TOTAL_IPS+1]
+        end
+        local pkt = buf:getUdpPacket()
+        pkt.ip4:setSrc(currentIp)      
+        --[[
+        TODO: put the math here
+        ]]--
+        if numFlows< NUM_FLOWS then
+          pkt.udp:setDstPort(DST_PORT_BASE)
+          pkt.udp:setSrcPort(SRC_PORT_BASE + cnt%numFlows)
+        elseif numFlows < FLOWS_PER_SRC_IP then
+          pkt.udp:setDstPort(DST_PORT_BASE + math.floor((cnt%numFlows)/NUM_FLOWS))
+          pkt.udp:setSrcPort(SRC_PORT_BASE + cnt%numFlows%NUM_FLOWS )
+        else
+          pkt.udp:setDstPort(DST_PORT_BASE + math.floor(cnt/NUM_FLOWS)%NUM_FLOWS )
+          pkt.udp:setSrcPort(SRC_PORT_BASE + cnt%NUM_FLOWS )
+        end
+        pkt.payload.uint64[0] = lm:getCycles()
+        
       end
-      local pkt = buf:getUdpPacket()
-      pkt.ip4:setSrc(currentIp)
-      
-      --[[
-      TODO: put the math here
-      ]]--
-      if numFlows< NUM_FLOWS then
-        pkt.udp:setDstPort(DST_PORT_BASE)
-        pkt.udp:setSrcPort(SRC_PORT_BASE + cnt%numFlows)
-      elseif numFlows < FLOWS_PER_SRC_IP then
-        pkt.udp:setDstPort(DST_PORT_BASE + math.floor((cnt%numFlows)/NUM_FLOWS))
-        pkt.udp:setSrcPort(SRC_PORT_BASE + cnt%numFlows%NUM_FLOWS )
-      else
-        pkt.udp:setDstPort(DST_PORT_BASE + math.floor(cnt/NUM_FLOWS)%NUM_FLOWS )
-        pkt.udp:setSrcPort(SRC_PORT_BASE + cnt%NUM_FLOWS )
-      end
-      pkt.payload.uint64[0] = lm:getCycles()
-      
+      -- UDP checksums are optional, so using just IPv4 checksums would be sufficient here
+      -- UDP checksum offloading is comparatively slow: NICs typically do not support calculating the pseudo-header checksum so this is done in SW
+      bufs:offloadUdpChecksums()
+      -- send out all packets and frees old bufs that have been sent
+      -- queue:send(bufs)
+      rateLimiter:send(bufs)
+      pktCtr:update()
     end
-    -- UDP checksums are optional, so using just IPv4 checksums would be sufficient here
-    -- UDP checksum offloading is comparatively slow: NICs typically do not support calculating the pseudo-header checksum so this is done in SW
-    bufs:offloadUdpChecksums()
-    -- send out all packets and frees old bufs that have been sent
-    -- queue:send(bufs)
-    rateLimiter:send(bufs)
-    pktCtr:update()
+  elseif TRAFFIC_GEN_PATTERN == "random" then
+    while lm.running() do -- check if Ctrl+c was pressed
+      -- this actually allocates some buffers from the mempool the array is associated with
+      -- this has to be repeated for each send because sending is asynchronous, we cannot reuse the old buffers here
+      bufs:alloc(PKT_LEN)
+      for i, buf in ipairs(bufs) do
+        -- packet framework allows simple access to fields in complex protocol stacks      
+        pktCtr:countPacket(buf)
+        local cnt, _ = pktCtr:getThroughput()
+        if cnt % NUM_FLOWS == 0 then
+          currentIp = SRC_IP_SET[math.ceil(cnt/FLOWS_PER_SRC_IP)%TOTAL_IPS+1]
+        end
+        local pkt = buf:getUdpPacket()
+        pkt.ip4:setSrc(currentIp)      
+        pkt.udp:setDstPort( integer(0,65535) )
+        pkt.udp:setSrcPort( integer(0,65535) )
+        pkt.payload.uint64[0] = lm:getCycles()        
+      end
+      -- UDP checksums are optional, so using just IPv4 checksums would be sufficient here
+      -- UDP checksum offloading is comparatively slow: NICs typically do not support calculating the pseudo-header checksum so this is done in SW
+      bufs:offloadUdpChecksums()
+      -- send out all packets and frees old bufs that have been sent
+      -- queue:send(bufs)
+      rateLimiter:send(bufs)
+      pktCtr:update()
+    end    
   end
-  pktCtr:finalize()
+  pktCtr:finalize()  
   
   lm.sleepMillis(500)
   lm.stop()
