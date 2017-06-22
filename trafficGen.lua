@@ -224,8 +224,8 @@ function txSlave(queue, dstMac, rateLimiter, numFlows, idx)
         -- packet framework allows simple access to fields in complex protocol stacks      
         pktCtr:countPacket(buf)
         local cnt, _ = pktCtr:getThroughput()
-        if cnt % NUM_FLOWS == 0 then
-          currentIp = SRC_IP_SET[math.ceil(cnt/FLOWS_PER_SRC_IP)%TOTAL_IPS+1]
+        if cnt % FLOWS_PER_SRC_IP == 0 then
+          currentIp = convert_ip_2_int(random_ipv4())
         end
         local pkt = buf:getUdpPacket()
         pkt.ip4:setSrc(currentIp)      
