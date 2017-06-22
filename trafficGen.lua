@@ -58,7 +58,7 @@ function configure(parser)
   parser:option("-f --flows", "Number of flows per device."):args(1):convert(tonumber):default(1000)
   parser:option("-r --rate", "Transmit rate in Mbit/s per device."):args(1):convert(tonumber):default(1)
   parser:option("-m --mac", "Destination MAC"):args(1)
-  parser:option("-q --queues", "Number of queues"):args(1):convert(tonumber):defualt(1)
+  parser:option("-q --queues", "Number of queues"):args(1):convert(tonumber):default(1)
   -- parser:flag("-d --dst_port", "Need to set dst port when sending packets")
   return parser:parse()
 end
