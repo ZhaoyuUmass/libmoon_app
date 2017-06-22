@@ -160,11 +160,12 @@ function txSlave(queue, dstMac, rateLimiter, numFlows, idx)
   
   local SRC_IP_SET = {}
   local TOTAL_IPS = 1
-  if TRAFFIC_GEN_PATTERN == "" then
+  if TRAFFIC_GEN_PATTERN == "round-robin" then
     TOTAL_IPS = math.ceil(numFlows/FLOWS_PER_SRC_IP)
-  elseif TRAFFIC_GEN_PATTERN == "" then
+  elseif TRAFFIC_GEN_PATTERN == "random" then
     TOTAL_IPS = math.ceil(numFlows/NUM_FLOWS)
   end
+  
   for i = 1, TOTAL_IPS do
     SRC_IP_SET[#SRC_IP_SET+1] = convert_ip_2_int(random_ipv4())
   end
