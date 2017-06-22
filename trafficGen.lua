@@ -99,9 +99,9 @@ function master(args, ...)
         -- the software rate limiter always works, but it can only scale up to 5.55Mpps (64b packet) with Intel 82599 NIC on EC2
         local rateLimiter = limiter:new(queue, pattern, 1 / args.rate * 1000)
         if DST_MAC then
-          lm.startTask("txSlave", queue, DST_MAC, rateLimiter, args.flows) 
+          lm.startTask("txSlave", queue, DST_MAC, rateLimiter, args.flows, j) 
         elseif args.mac then
-          lm.startTask("txSlave", queue, args.mac, rateLimiter, args.flows)
+          lm.startTask("txSlave", queue, args.mac, rateLimiter, args.flows, j)
         else
           print("no mac specified")
         end  
@@ -116,9 +116,9 @@ function master(args, ...)
           local queue = dev:getTxQueue(j-1) 
           local rateLimiter = limiter:new(queue, pattern, 1 / args.rate * 1000)
           if DST_MAC then
-            lm.startTask("txSlave", queue, DST_MAC, rateLimiter, args.flows) 
+            lm.startTask("txSlave", queue, DST_MAC, rateLimiter, args.flows, j) 
           elseif args.mac then
-            lm.startTask("txSlave", queue, args.mac, rateLimiter, args.flows)
+            lm.startTask("txSlave", queue, args.mac, rateLimiter, args.flows, j)
           else
             print("no mac specified")
           end
@@ -138,7 +138,7 @@ function master(args, ...)
   end
 end
 
-function txSlave(queue, dstMac, rateLimiter, numFlows)
+function txSlave(queue, dstMac, rateLimiter, numFlows, idx)
   -- memory pool with default values for all packets, this is our archetype
   local mempool = memory.createMemPool(function(buf)
     buf:getUdpPacket():fill{
@@ -168,7 +168,7 @@ function txSlave(queue, dstMac, rateLimiter, numFlows)
   end
   
   local currentIp = SRC_IP_SET[1]
-  local pktCtr = stats:newPktTxCounter("Packets sent", "plain")
+  local pktCtr = stats:newPktTxCounter("Packets sent"..idx, "plain")
   while lm.running() do -- check if Ctrl+c was pressed
     -- this actually allocates some buffers from the mempool the array is associated with
     -- this has to be repeated for each send because sending is asynchronous, we cannot reuse the old buffers here
