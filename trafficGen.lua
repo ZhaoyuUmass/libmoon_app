@@ -116,7 +116,7 @@ function master(args, ...)
         for j=1,queues do
           -- start TX queue
           local queue = dev:getTxQueue(j-1) 
-          local rateLimiter = limiter:new(queue, pattern, 1 / args.rate * 1000)
+          local rateLimiter = limiter:new(queue, PATTERN, 1 / args.rate * 1000)
           if DST_MAC then
             lm.startTask("txSlave", queue, DST_MAC, rateLimiter, args.flows, j) 
           elseif args.mac then
@@ -127,9 +127,7 @@ function master(args, ...)
         end
       else 
         -- start RX queue
-        if i == 2 then
-          lm.startTask("rxLatency", dev:getRxQueue(0))
-        end
+        lm.startTask("rxLatency", dev:getRxQueue(0))
       end
     end
   end
