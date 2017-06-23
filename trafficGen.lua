@@ -127,7 +127,9 @@ function master(args, ...)
         end
       else 
         -- start RX queue
-        lm.startTask("rxLatency", dev:getRxQueue(0))
+        if i == 2 then
+          lm.startTask("rxLatency", dev:getRxQueue(0))
+        end
       end
     end
   end
