@@ -110,7 +110,8 @@ function master(args, ...)
     else
       print("no mac specified")
     end  
-    if i == dev.rx then
+    if i == args.rx then
+      print(">>>>>>> start rx task on ", i)
       lm.startTask("rxLatency", dev:getRxQueue(0))
     end
   end
