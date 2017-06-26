@@ -103,6 +103,7 @@ function master(args, ...)
       print(">>>>>>> start rx task on ", i)
       lm.startTask("rxLatency", dev:getRxQueue(0))
     else
+      print(">>>>>>> start tx task on ", i)
       -- initialize a local queue: local is very important here
       local queue = dev:getTxQueue(0)    
       -- the software rate limiter always works, but it can only scale up to 5.55Mpps (64b packet) with Intel 82599 NIC on EC2
