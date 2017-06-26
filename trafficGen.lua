@@ -26,7 +26,8 @@ local FLOWS_PER_SRC_IP = NUM_FLOWS*NUM_FLOWS
  
 local SAMPLE_RATE = 10000 -- sample latency every 10,000 response
 
-local TRAFFIC_GEN_PATTERN = "random" -- other option: "round-robin"
+-- local TRAFFIC_GEN_PATTERN = "random" -- other option: "round-robin"
+local TRAFFIC_GEN_PATTERN = "round-robin"
 
 -- Helper functions --
 local function integer(a,b)
