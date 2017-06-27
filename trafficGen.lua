@@ -77,6 +77,7 @@ function master(args, ...)
     print(k,v)
   end
   print("Interaction", args.interaction)
+  print("WIthout rate limiter", args.withoutRateLimiter)
   
   if args.interaction then
     args.rx = args.dev[1]
@@ -121,9 +122,9 @@ function master(args, ...)
     if args.interaction then
       local queue = dev:getTxQueue(0)    
       -- the software rate limiter always works, but it can only scale up to 5.55Mpps (64b packet) with Intel 82599 NIC on EC2     
-      local rateLimiter = limiter:new(queue, PATTERN, 1 / args.load * 1000)
-      if args.withoutRateLimiter then
-        rateLimiter = nil
+      local rateLimiter = nil 
+      if args.withoutRateLimiter ~= nil then
+        rateLimiter = limiter:new(queue, PATTERN, 1 / args.load * 1000)
       end
       if DST_MAC then
         lm.startTask("txSlave", queue, DST_MAC, rateLimiter, args.flows, i) 
@@ -142,9 +143,9 @@ function master(args, ...)
         -- initialize a local queue: local is very important here
         local queue = dev:getTxQueue(0)    
         -- the software rate limiter always works, but it can only scale up to 5.55Mpps (64b packet) with Intel 82599 NIC on EC2
-        local rateLimiter = limiter:new(queue, PATTERN, 1 / args.load * 1000)
-        if args.withoutRateLimiter then
-          rateLimiter = nil
+        local rateLimiter = nil
+        if args.withoutRateLimiter ~= nil then
+          rateLimiter = limiter:new(queue, PATTERN, 1 / args.load * 1000)
         end
         if DST_MAC then
           lm.startTask("txSlave", queue, DST_MAC, rateLimiter, args.flows, i) 
