@@ -284,8 +284,8 @@ function rxLatency(rxQueue, idx)
         local pkt = buf:getUdpPacket()
         local txTs = pkt.payload.uint64[0]
         f:write(tostring(tonumber(rxTs - txTs) / tscFreq * 10^9) .. " " .. tostring(tonumber(rxTs)) .. "\n")
-        local ethPkt = buf:getEthPacket()
-        print("eth header:",ethPkt.eth:getSrcString(),ethPkt.eth:getDstString())
+        
+        print("ip header:", pkt.eth:getSrcString(), pkt.eth:getDstString())
       end   
     end
     pktCtr:update()
