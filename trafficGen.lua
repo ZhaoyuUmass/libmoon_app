@@ -64,7 +64,7 @@ function configure(parser)
   parser:option("-m --mac", "Destination MAC"):args(1)
   -- lesson learned: increase number of queues will not increase tx throughput
   -- parser:option("-q --queues", "Number of queues"):args(1):convert(tonumber):default(1)
-  -- parser:flag("-d --dst_port", "Need to set dst port when sending packets")
+  parser:flag("-i --interaction", "Interaction mode, i.e., tx and rx queue are from the same device")
   return parser:parse()
 end
 
@@ -75,13 +75,15 @@ function master(args, ...)
   for k,v in pairs(args.dev) do
     print(k,v)
   end
-  print("SRC_IP",SRC_IP)
-  print("DST_IP",DST_IP)
-  print("DST_MAC",DST_MAC)
+  print("Interaction", args.interaction)
   
-  -- if no rx device is specfied, then use the first device's rx queue
-  if args.rx == nil then
+  if args.interaction then
     args.rx = args.dev[1]
+  else
+    -- if no rx device is specfied, then use the first device's rx queue
+    if args.rx == nil then
+      args.rx = args.dev[1]
+    end
   end
     
   -- configure devices, we only need a single txQueue to send traffic and another port to send latency traffic
