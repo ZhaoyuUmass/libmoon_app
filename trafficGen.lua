@@ -285,7 +285,7 @@ function rxLatency(rxQueue, idx)
         local txTs = pkt.payload.uint64[0]
         f:write(tostring(tonumber(rxTs - txTs) / tscFreq * 10^9) .. " " .. tostring(tonumber(rxTs)) .. "\n")
         local ethPkt = buf:getEthPacket()
-        print("source mac:",ethPkt.getSrcString())
+        print("eth header:",ethPkt.eth)
       end   
     end
     pktCtr:update()
