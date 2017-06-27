@@ -113,9 +113,9 @@ function master(args, ...)
  
   -- start tx tasks
   for i,dev in pairs(args.dev) do 
-    if j == args.rx+1 then
+    if i == args.rx+1 then
       print(">>>>>>> start rx task on ", i)
-      for i = 1,numRxQueues do
+      for j = 1,numRxQueues do
         lm.startTask("rxLatency", dev:getRxQueue(j-1))
       end      
     else
