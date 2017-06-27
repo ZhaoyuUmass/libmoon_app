@@ -97,7 +97,7 @@ function master(args, ...)
     if i == args.rx+1 then
       local dev = device.config{
         port = dev,
-        rxQueues = numRxQueues
+        rxQueues = 1
       }
       args.dev[i] = dev
     else
@@ -113,11 +113,9 @@ function master(args, ...)
  
   -- start tx tasks
   for i,dev in pairs(args.dev) do 
-    if i == args.rx+1 then      
-      for j = 1,numRxQueues do
-        print(">>>>>>> start rx task on ", i," queue ",j)
-        lm.startTask("rxLatency", dev:getRxQueue(j-1), j-1)
-      end      
+    if i == args.rx+1 then            
+      print(">>>>>>> start rx task on ", i)
+      lm.startTask("rxLatency", dev:getRxQueue(0))     
     else
       print(">>>>>>> start tx task on ", i)
       -- initialize a local queue: local is very important here
@@ -261,13 +259,13 @@ function txSlave(queue, dstMac, rateLimiter, numFlows, idx)
 end
 
 
-function rxLatency(rxQueue, idx)
+function rxLatency(rxQueue)
   local tscFreq = mg.getCyclesFrequency()
   print("tscFreq",tscFreq)
   
   -- use whatever filter appropriate for your packet type
   -- queue:filterUdpTimestamps()
-  local pktCtr = stats:newPktRxCounter("Packets received"..idx, "plain")
+  local pktCtr = stats:newPktRxCounter("Packets received", "plain")
   local bufs = memory.bufArray()
   -- Dump the rxTs and txTs to a local file 
   local f = io.open("rcvd.txt", "w+")
