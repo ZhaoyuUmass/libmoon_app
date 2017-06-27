@@ -261,13 +261,13 @@ function txSlave(queue, dstMac, rateLimiter, numFlows, idx)
 end
 
 
-function rxLatency(rxQueue)
+function rxLatency(rxQueue, idx)
   local tscFreq = mg.getCyclesFrequency()
   print("tscFreq",tscFreq)
   
   -- use whatever filter appropriate for your packet type
   -- queue:filterUdpTimestamps()
-  local pktCtr = stats:newPktRxCounter("Packets received", "plain")
+  local pktCtr = stats:newPktRxCounter("Packets received"..idx, "plain")
   local bufs = memory.bufArray()
   -- Dump the rxTs and txTs to a local file 
   local f = io.open("rcvd.txt", "w+")
