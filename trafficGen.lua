@@ -59,12 +59,13 @@ function configure(parser)
   parser:description("Edit the source to modify constants like IPs and ports.")
   parser:argument("dev", "Devices to use."):args("+"):convert(tonumber)
   parser:option("-r --rx", "specific rx device"):args(1):convert(tonumber)
-  parser:option("-f --flows", "Number of flows per device."):args(1):convert(tonumber):default(1000)
+  parser:option("-f --flows", "Number of flows per device."):args(1):convert(tonumber):default(1)
   parser:option("-l --load", "Transmit rate in Mbit/s per device."):args(1):convert(tonumber):default(1)
   parser:option("-m --mac", "Destination MAC"):args(1)
   -- lesson learned: increase number of queues will not increase tx throughput
   -- parser:option("-q --queues", "Number of queues"):args(1):convert(tonumber):default(1)
-  parser:option("-w -withoutRateLimiter", "without software rate limiter"):args(1):convert(tonumber):default(0)
+  -- default is without rate limiter
+  parser:option("-w -withRateLimiter", "with software rate limiter"):args(1):convert(tonumber):default(0)
   return parser:parse()
 end
 
@@ -75,8 +76,13 @@ function master(args, ...)
   for k,v in pairs(args.dev) do
     print(k,v)
   end
-  print("Without rate limiter", args.withoutRateLimiter)
+  print("With rate limiter", args.withoutRateLimiter)
   
+  if args.withRateLimiter == 0 then
+    args.withRateLimiter = false
+  else
+    args.withRateLimiter = true
+  end
   
   -- if no rx device is specfied, then use the first device's rx queue
   if args.rx == nil then
@@ -115,7 +121,7 @@ function master(args, ...)
       local queue = dev:getTxQueue(0)    
       -- the software rate limiter always works, but it can only scale up to 5.55Mpps (64b packet) with Intel 82599 NIC on EC2
       local rateLimiter = nil
-      if args.withoutRateLimiter ~= 0 then
+      if args.withRateLimiter then
         rateLimiter = limiter:new(queue, PATTERN, 1 / args.load * 1000)
       end
       if DST_MAC then
