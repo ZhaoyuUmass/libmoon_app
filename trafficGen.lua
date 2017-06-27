@@ -143,7 +143,7 @@ function master(args, ...)
         local queue = dev:getTxQueue(0)    
         -- the software rate limiter always works, but it can only scale up to 5.55Mpps (64b packet) with Intel 82599 NIC on EC2
         local rateLimiter = limiter:new(queue, PATTERN, 1 / args.load * 1000)
-        if args.withRateLimiter then
+        if args.withoutRateLimiter then
           rateLimiter = nil
         end
         if DST_MAC then
