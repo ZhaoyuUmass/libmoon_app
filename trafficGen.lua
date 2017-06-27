@@ -65,7 +65,7 @@ function configure(parser)
   -- lesson learned: increase number of queues will not increase tx throughput
   -- parser:option("-q --queues", "Number of queues"):args(1):convert(tonumber):default(1)
   -- default is without rate limiter
-  parser:option("-w -withRateLimiter", "with software rate limiter"):args(1):convert(tonumber):default(0)
+  parser:option("-w --withRateLimiter", "with software rate limiter"):args(1):convert(tonumber):default(0)
   return parser:parse()
 end
 
