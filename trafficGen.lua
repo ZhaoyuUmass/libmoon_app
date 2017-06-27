@@ -89,7 +89,7 @@ function master(args, ...)
     args.rx = args.dev[1]
   end
 
-  local numRxQueues = table.getn(args.dev) > 1 and table.getn(args.dev)-1 or 1
+  local numRxQueues = 4 -- table.getn(args.dev) > 1 and table.getn(args.dev)-1 or 1
     
   -- configure devices, we only need a single txQueue to send traffic and another port to send latency traffic
   -- Note: VF only supports 1 tx and rx queue on agave machines, that's why we hard code the number to 1 here
