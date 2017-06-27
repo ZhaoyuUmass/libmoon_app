@@ -89,18 +89,27 @@ function master(args, ...)
   -- configure devices, we only need a single txQueue to send traffic and another port to send latency traffic
   -- Note: VF only supports 1 tx and rx queue on agave machines, that's why we hard code the number to 1 here
   for i,dev in pairs(args.dev) do
-    if i == args.rx+1 then
+    if args.interaction then
       local dev = device.config{
-        port = dev,
-        txQueues = 1
-      }
-      args.dev[i] = dev
+          port = dev,
+          txQueues = 1,
+          rxQueues = 1
+        }
+        args.dev[i] = dev
     else
-      local dev = device.config{
-        port = dev,
-        rxQueue = 1
-      }
-      args.dev[i] = dev
+      if i == args.rx+1 then
+        local dev = device.config{
+          port = dev,
+          txQueues = 1
+        }
+        args.dev[i] = dev
+      else
+        local dev = device.config{
+          port = dev,
+          rxQueue = 1
+        }
+        args.dev[i] = dev
+      end
     end
   end
 
@@ -108,12 +117,7 @@ function master(args, ...)
  
   -- start tx tasks
   for i,dev in pairs(args.dev) do 
-    if i == args.rx+1 then
-      print(">>>>>>> start rx task on ", i)
-      lm.startTask("rxLatency", dev:getRxQueue(0))
-    else
-      print(">>>>>>> start tx task on ", i)
-      -- initialize a local queue: local is very important here
+    if args.interaction then
       local queue = dev:getTxQueue(0)    
       -- the software rate limiter always works, but it can only scale up to 5.55Mpps (64b packet) with Intel 82599 NIC on EC2
       local rateLimiter = limiter:new(queue, PATTERN, 1 / args.load * 1000)
@@ -123,7 +127,26 @@ function master(args, ...)
         lm.startTask("txSlave", queue, args.mac, rateLimiter, args.flows, i)
       else
         print("no mac specified")
-      end 
+      end
+      lm.startTask("rxLatency", dev:getRxQueue(0))
+    else
+      if i == args.rx+1 then
+        print(">>>>>>> start rx task on ", i)
+        lm.startTask("rxLatency", dev:getRxQueue(0))
+      else
+        print(">>>>>>> start tx task on ", i)
+        -- initialize a local queue: local is very important here
+        local queue = dev:getTxQueue(0)    
+        -- the software rate limiter always works, but it can only scale up to 5.55Mpps (64b packet) with Intel 82599 NIC on EC2
+        local rateLimiter = limiter:new(queue, PATTERN, 1 / args.load * 1000)
+        if DST_MAC then
+          lm.startTask("txSlave", queue, DST_MAC, rateLimiter, args.flows, i) 
+        elseif args.mac then
+          lm.startTask("txSlave", queue, args.mac, rateLimiter, args.flows, i)
+        else
+          print("no mac specified")
+        end 
+      end
     end
   end
 
