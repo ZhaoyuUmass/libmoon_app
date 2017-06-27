@@ -98,6 +98,7 @@ function master(args, ...)
         port = dev,
         rxQueue = 1
       }
+      args.dev[i] = dev
     end
   end
 
