@@ -116,7 +116,7 @@ function master(args, ...)
     if i == args.rx+1 then      
       for j = 1,numRxQueues do
         print(">>>>>>> start rx task on ", i," queue ",j)
-        lm.startTask("rxLatency", dev:getRxQueue(j-1))
+        lm.startTask("rxLatency", dev:getRxQueue(j-1), j-1)
       end      
     else
       print(">>>>>>> start tx task on ", i)
