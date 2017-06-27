@@ -76,7 +76,7 @@ function master(args, ...)
   for k,v in pairs(args.dev) do
     print(k,v)
   end
-  print("With rate limiter", args.withoutRateLimiter)
+  print("With rate limiter", args.withRateLimiter)
   
   if args.withRateLimiter == 0 then
     args.withRateLimiter = false
@@ -89,6 +89,7 @@ function master(args, ...)
     args.rx = args.dev[1]
   end
 
+  local numRxQueues = table.getn(args.dev) > 1 and table.getn(args.dev)-1 or 1
     
   -- configure devices, we only need a single txQueue to send traffic and another port to send latency traffic
   -- Note: VF only supports 1 tx and rx queue on agave machines, that's why we hard code the number to 1 here
@@ -96,13 +97,13 @@ function master(args, ...)
     if i == args.rx+1 then
       local dev = device.config{
         port = dev,
-        txQueues = 1
+        rxQueues = numRxQueues
       }
       args.dev[i] = dev
     else
       local dev = device.config{
         port = dev,
-        rxQueue = 1
+        txQueue = 1
       }
       args.dev[i] = dev
     end
@@ -114,7 +115,9 @@ function master(args, ...)
   for i,dev in pairs(args.dev) do 
     if i == args.rx+1 then
       print(">>>>>>> start rx task on ", i)
-      lm.startTask("rxLatency", dev:getRxQueue(0))
+      for i = 1,numRxQueues do
+        lm.startTask("rxLatency", dev:getRxQueue(i-1))
+      end      
     else
       print(">>>>>>> start tx task on ", i)
       -- initialize a local queue: local is very important here
