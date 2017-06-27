@@ -65,6 +65,7 @@ function configure(parser)
   -- lesson learned: increase number of queues will not increase tx throughput
   -- parser:option("-q --queues", "Number of queues"):args(1):convert(tonumber):default(1)
   parser:flag("-i --interaction", "Interaction mode, i.e., tx and rx queue are from the same device")
+  parser:flag("-w -withoutRateLimiter", "without software rate limiter")
   return parser:parse()
 end
 
@@ -119,8 +120,11 @@ function master(args, ...)
   for i,dev in pairs(args.dev) do 
     if args.interaction then
       local queue = dev:getTxQueue(0)    
-      -- the software rate limiter always works, but it can only scale up to 5.55Mpps (64b packet) with Intel 82599 NIC on EC2
+      -- the software rate limiter always works, but it can only scale up to 5.55Mpps (64b packet) with Intel 82599 NIC on EC2     
       local rateLimiter = limiter:new(queue, PATTERN, 1 / args.load * 1000)
+      if args.withoutRateLimiter then
+        rateLimiter = nil
+      end
       if DST_MAC then
         lm.startTask("txSlave", queue, DST_MAC, rateLimiter, args.flows, i) 
       elseif args.mac then
@@ -139,6 +143,9 @@ function master(args, ...)
         local queue = dev:getTxQueue(0)    
         -- the software rate limiter always works, but it can only scale up to 5.55Mpps (64b packet) with Intel 82599 NIC on EC2
         local rateLimiter = limiter:new(queue, PATTERN, 1 / args.load * 1000)
+        if args.withRateLimiter then
+          rateLimiter = nil
+        end
         if DST_MAC then
           lm.startTask("txSlave", queue, DST_MAC, rateLimiter, args.flows, i) 
         elseif args.mac then
@@ -230,7 +237,11 @@ function txSlave(queue, dstMac, rateLimiter, numFlows, idx)
       bufs:offloadUdpChecksums()
       -- send out all packets and frees old bufs that have been sent
       -- queue:send(bufs)
-      rateLimiter:send(bufs)
+      if rateLimiter then
+        rateLimiter:send(bufs)
+      else
+        queue:send(bufs)
+      end
       pktCtr:update()
     end
   elseif TRAFFIC_GEN_PATTERN == "random" then
@@ -256,7 +267,11 @@ function txSlave(queue, dstMac, rateLimiter, numFlows, idx)
       bufs:offloadUdpChecksums()
       -- send out all packets and frees old bufs that have been sent
       -- queue:send(bufs)
-      rateLimiter:send(bufs)
+      if rateLimiter then
+        rateLimiter:send(bufs)
+      else
+        queue:send(bufs)
+      end
       pktCtr:update()
     end    
   end
