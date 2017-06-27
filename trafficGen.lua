@@ -87,12 +87,18 @@ function master(args, ...)
   -- configure devices, we only need a single txQueue to send traffic and another port to send latency traffic
   -- Note: VF only supports 1 tx and rx queue on agave machines, that's why we hard code the number to 1 here
   for i,dev in pairs(args.dev) do
-    local dev = device.config{
-      port = dev,
-      txQueues = 1,
-      rxQueues = 1
-    }
-    args.dev[i] = dev
+    if i == args.rx+1 then
+      local dev = device.config{
+        port = dev,
+        txQueues = 1
+      }
+      args.dev[i] = dev
+    else
+      local dev = device.config{
+        port = dev,
+        rxQueue = 1
+      }
+    end
   end
 
   device.waitForLinks()  
