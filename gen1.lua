@@ -1,6 +1,6 @@
--- Generate TCP or UDP traffic at a fixed rate
--- NOTE: to run this test, you must make sure that you have at least 2 ports (no requirement for number of queues supported by each port, we assume there is only one queue in each port)
--- Usage: sudo ./MoonGen path-to-this-script/trafficGen
+-- Generate TCP or UDP traffic at a fixed rate, this can be used with a single port send and receive packets
+-- NOTE: to run this test, you must make sure that you have at least 1 port available (no requirement for number of queues supported by each port, we assume there is only one queue in each port)
+-- Usage: sudo ./MoonGen path-to-this-script/gen1
 
 local mg     = require "moongen"
 local lm     = require "libmoon"
@@ -28,6 +28,8 @@ local SAMPLE_RATE = 10000 -- sample latency every 10,000 response
 
 -- local TRAFFIC_GEN_PATTERN = "random" -- other option: "round-robin"
 local TRAFFIC_GEN_PATTERN = "round-robin"
+
+local SRC_IP_PREFIX = "10.0.0."
 
 -- Helper functions --
 local function integer(a,b)
@@ -148,7 +150,7 @@ function txSlave(queue, dstMac, rateLimiter, numFlows, idx)
   end
   
   for i = 1, TOTAL_IPS do
-    SRC_IP_SET[#SRC_IP_SET+1] = convert_ip_2_int(random_ipv4())
+    SRC_IP_SET[#SRC_IP_SET+1] = convert_ip_2_int(SRC_IP_PREFIX..str(i))
   end
 
   print("SRC_IP_SET:")
