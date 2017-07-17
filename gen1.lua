@@ -150,7 +150,7 @@ function txSlave(queue, dstMac, rateLimiter, numFlows, idx)
   end
   
   for i = 1, TOTAL_IPS do
-    SRC_IP_SET[#SRC_IP_SET+1] = convert_ip_2_int(SRC_IP_PREFIX..str(i))
+    SRC_IP_SET[#SRC_IP_SET+1] = convert_ip_2_int(SRC_IP_PREFIX..i)
   end
 
   print("SRC_IP_SET:")
