@@ -12,7 +12,6 @@ local limiter = require "software-ratecontrol"
 
 
 -- set addresses here
-local DST_MAC       = nil -- resolved via ARP on GW_IP or DST_IP, can be overriden with a string here
 local PKT_LEN       = 60  -- max size: 1496
 local SRC_IP        = "10.0.0.1"
 local DST_IP        = "10.0.1.1"
@@ -84,7 +83,8 @@ function master(args, ...)
   else
     args.withRateLimiter = true
   end
-
+  print("DST MAC is:",args.mac)
+  
   -- configure devices, we only need a single txQueue to send traffic and another port to send latency traffic
   -- Note: VF only supports 1 tx and rx queue on agave machines, that's why we hard code the number to 1 here
   for i,dev in pairs(args.dev) do
@@ -106,9 +106,8 @@ function master(args, ...)
     if args.withRateLimiter then
       rateLimiter = limiter:new(queue, PATTERN, 1 / args.load * 1000)
     end
-    if DST_MAC then
-      lm.startTask("txSlave", queue, DST_MAC, rateLimiter, args.flows, i) 
-    elseif args.mac then
+     
+    if args.mac then
       lm.startTask("txSlave", queue, args.mac, rateLimiter, args.flows, i)
     else
       print("no mac specified")
