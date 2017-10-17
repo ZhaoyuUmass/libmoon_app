@@ -117,7 +117,7 @@ function master(args, ...)
   
 end
 
-function txSlave(queue, dstMac, rateLimiter, numFlows, idx)
+function txSlave(queue, dstMac, numFlows, idx)
   -- memory pool with default values for all packets, this is our archetype
   local mempool = memory.createMemPool(function(buf)
     buf:getUdpPacket():fill{
