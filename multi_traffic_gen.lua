@@ -218,8 +218,8 @@ function txSlave(queue, dstMac, numFlows, idx)
       pktCtr:update()
     end    
   end
-  ]]--
   pktCtr:finalize()  
+  ]]--
   
   lm.sleepMillis(500)
   lm.stop()
