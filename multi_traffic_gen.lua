@@ -149,7 +149,7 @@ function txSlave(queue, dstMac, numFlows, idx)
     SRC_IP_SET[#SRC_IP_SET+1] = ip_addr
   end
 
-  print(i.." SRC_IP_SET:")
+  print(i, " SRC_IP_SET:")
   for i,v in ipairs(SRC_IP_SET) do
     print(i,v)
   end
