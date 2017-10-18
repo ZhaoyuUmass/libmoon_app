@@ -65,9 +65,6 @@ function master(args, ...)
     
   lm.waitForTasks()
   
-  for i,dev in pairs(args.dev) do
-    dev:stop()
-  end
 end
 
 
