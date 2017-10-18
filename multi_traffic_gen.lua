@@ -12,7 +12,7 @@ local limiter = require "software-ratecontrol"
 
 
 -- set addresses here
-local DST_MAC       = nil -- resolved via ARP on GW_IP or DST_IP, can be overriden with a string here
+local DST_MAC       = "de:ad:be:02:02:00" -- resolved via ARP on GW_IP or DST_IP, can be overriden with a string here
 local PKT_LEN       = 60  -- max size: 1496
 local SRC_IP        = "10.0.0.1"
 local DST_IP        = "10.0.1.1"
@@ -111,10 +111,8 @@ function master(args, ...)
     local mac = DST_MAC
     print(">>>>>>> start tx task on ", i)
     lm.startTask("txSlave", queue, mac, args.flows, i)
-  end
-    
-  lm.waitForTasks()
-  
+  end    
+  lm.waitForTasks()  
 end
 
 function txSlave(queue, dstMac, numFlows, idx)
