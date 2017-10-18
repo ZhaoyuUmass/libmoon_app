@@ -104,13 +104,14 @@ function master(args, ...)
 
   device.waitForLinks()  
   
+  local idx=string.sub(args.mac, -1, -1)
+  
   -- start tx tasks
   for i,dev in pairs(args.dev) do
     -- initializee a local tx queue
     local queue = dev:getTxQueue(0)
-    local mac = args.mac
     print(">>>>>>> start tx task on ", i)
-    lm.startTask("txSlave", queue, mac, args.flows, i)
+    lm.startTask("txSlave", queue, args.mac, args.flows, idx)
   end    
   lm.waitForTasks()  
 end
