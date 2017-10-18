@@ -61,7 +61,7 @@ function configure(parser)
   parser:option("-r --rx", "specific rx device"):args(1):convert(tonumber)
   parser:option("-f --flows", "Number of flows per device."):args(1):convert(tonumber):default(1)
   parser:option("-l --load", "Transmit rate in Mbit/s per device."):args(1):convert(tonumber):default(1)
-  parser:option("-m --mac", "Destination MAC"):args(1)
+  parser:option("-m --mac", "Destination MAC"):args(1):default("de:ad:be:02:02:00")
   -- lesson learned: increase number of queues will not increase tx throughput
   -- parser:option("-q --queues", "Number of queues"):args(1):convert(tonumber):default(1)
   -- default is without rate limiter
@@ -108,7 +108,7 @@ function master(args, ...)
   for i,dev in pairs(args.dev) do
     -- initializee a local tx queue
     local queue = dev:getTxQueue(0)
-    local mac = DST_MAC
+    local mac = args.mac
     print(">>>>>>> start tx task on ", i)
     lm.startTask("txSlave", queue, mac, args.flows, i)
   end    
