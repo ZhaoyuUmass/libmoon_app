@@ -27,13 +27,7 @@ function configure(parser)
   parser:description("Edit the source to modify constants like IPs and ports.")
   parser:argument("dev", "Devices to use."):args("+"):convert(tonumber)
   parser:option("-r --rx", "specific rx device"):args(1):convert(tonumber)
-  parser:option("-f --flows", "Number of flows per device."):args(1):convert(tonumber):default(1)
-  parser:option("-l --load", "Transmit rate in Mbit/s per device."):args(1):convert(tonumber):default(1)
-  parser:option("-m --mac", "Destination MAC"):args(1)
-  -- lesson learned: increase number of queues will not increase tx throughput
-  -- parser:option("-q --queues", "Number of queues"):args(1):convert(tonumber):default(1)
-  -- default is without rate limiter
-  parser:option("-w --withRateLimiter", "with software rate limiter"):args(1):convert(tonumber):default(0)
+  parser:option("-w --withLatnecySampler", "with latency sampler"):args(1):convert(tonumber):default(0)
   return parser:parse()
 end
 
@@ -60,13 +54,32 @@ function master(args, ...)
   -- start tx tasks
   for i,dev in pairs(args.dev) do        
     print(">>>>>>> start rx task on ", i)
-    lm.startTask("rxLatency", dev:getRxQueue(0))     
+    if(args.withLatencySampler) then
+      lm.startTask("rxTask", dev:getRxQueue(0))
+    else
+      lm.startTask("rxLatency", dev:getRxQueue(0))  
+    end   
   end
     
   lm.waitForTasks()
   
 end
 
+function rxTask(rxQueue)
+  local pktCtr = stats:newPktRxCounter("Packets received", "plain")
+  local bufs = memory.bufArray()
+  while mg.running() do
+    local rx = rxQueue:tryRecv(bufs)
+    for i = 1, rx do
+      local buf = bufs[i]
+      pktCtr:countPacket(buf)
+      local ctr,_ = pktCtr:getThroughput()   
+    end
+    pktCtr:update()
+    bufs:freeAll()
+  end
+  pktCtr:finalize()
+end
 
 function rxLatency(rxQueue)
   local tscFreq = mg.getCyclesFrequency()
