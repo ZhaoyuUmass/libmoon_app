@@ -118,14 +118,14 @@ function master(args, ...)
       -- initialize a local queue: local is very important here
       local queue = dev:getTxQueue(0)
       -- the software rate limiter always works, but it can only scale up to 5.55Mpps (64b packet) with Intel 82599 NIC on EC2
-      local rateLimiter = nil
+      -- local rateLimiter = nil
       -- use rate limiter no matter what
-      rateLimiter = limiter:new(queue, PATTERN, 1 / args.load * 1000)
+      -- rateLimiter = limiter:new(queue, PATTERN, 1 / args.load * 1000)
 
       if DST_MAC then
-        lm.startTask("txSlave", queue, DST_MAC, rateLimiter, args.flows, i) 
+        lm.startTask("txSlave", queue, DST_MAC, args.load, args.flows, i) 
       elseif args.mac then
-        lm.startTask("txSlave", queue, args.mac, rateLimiter, args.flows, i)
+        lm.startTask("txSlave", queue, args.mac, args.load, args.flows, i)
       else
         print("no mac specified")
       end 
@@ -139,7 +139,7 @@ function master(args, ...)
   end
 end
 
-function txSlave(queue, dstMac, rateLimiter, numFlows, idx)
+function txSlave(queue, dstMac, rate, numFlows, idx)
   -- memory pool with default values for all packets, this is our archetype
   local mempool = memory.createMemPool(function(buf)
     buf:getUdpPacket():fill{
@@ -177,6 +177,8 @@ function txSlave(queue, dstMac, rateLimiter, numFlows, idx)
   local currentIp = SRC_IP_SET[1]
   local pktCtr = stats:newPktTxCounter("Packets sent"..idx, "plain")
   if TRAFFIC_GEN_PATTERN == "round-robin" then
+    queue:setRate(rate * (PKT_LEN + 4) * 8)
+    lm.sleepMillis(100)
     while lm.running() do -- check if Ctrl+c was pressed
       -- this actually allocates some buffers from the mempool the array is associated with
       -- this has to be repeated for each send because sending is asynchronous, we cannot reuse the old buffers here
@@ -210,12 +212,7 @@ function txSlave(queue, dstMac, rateLimiter, numFlows, idx)
       -- UDP checksum offloading is comparatively slow: NICs typically do not support calculating the pseudo-header checksum so this is done in SW
       bufs:offloadUdpChecksums()
       -- send out all packets and frees old bufs that have been sent
-      -- queue:send(bufs)
-      if rateLimiter then
-        rateLimiter:send(bufs)
-      else
-        queue:send(bufs)
-      end
+      queue:send(bufs)
       pktCtr:update()
     end
   elseif TRAFFIC_GEN_PATTERN == "random" then
