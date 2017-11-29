@@ -119,9 +119,9 @@ function master(args, ...)
       local queue = dev:getTxQueue(0)
       -- the software rate limiter always works, but it can only scale up to 5.55Mpps (64b packet) with Intel 82599 NIC on EC2
       local rateLimiter = nil
-      if args.withoutRateLimiter ~= nil then
-        rateLimiter = limiter:new(queue, PATTERN, 1 / args.load * 1000)
-      end
+      -- use rate limiter no matter what
+      rateLimiter = limiter:new(queue, PATTERN, 1 / args.load * 1000)
+
       if DST_MAC then
         lm.startTask("txSlave", queue, DST_MAC, rateLimiter, args.flows, i) 
       elseif args.mac then
