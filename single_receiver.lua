@@ -26,8 +26,6 @@ local SAMPLE_RATE = 10000 -- sample latency every 10,000 response
 function configure(parser)
   parser:description("Edit the source to modify constants like IPs and ports.")
   parser:argument("dev", "Devices to use."):args("+"):convert(tonumber)
-  parser:option("-r --rx", "specific rx device"):args(1):convert(tonumber)
-  parser:option("-w --withLatnecySampler", "with latency sampler"):args(1):convert(tonumber):default(0)
   return parser:parse()
 end
 
@@ -54,31 +52,9 @@ function master(args, ...)
   -- start tx tasks
   for i,dev in pairs(args.dev) do        
     print(">>>>>>> start rx task on ", i)
-    if(args.withLatencySampler) then
-      lm.startTask("rxTask", dev:getRxQueue(0))
-    else
-      lm.startTask("rxLatency", dev:getRxQueue(0))  
-    end   
-  end
-    
+    lm.startTask("rxLatency", dev:getRxQueue(0))     
+  end    
   lm.waitForTasks()
-  
-end
-
-function rxTask(rxQueue)
-  local pktCtr = stats:newPktRxCounter("Packets received", "plain")
-  local bufs = memory.bufArray()
-  while mg.running() do
-    local rx = rxQueue:tryRecv(bufs)
-    for i = 1, rx do
-      local buf = bufs[i]
-      pktCtr:countPacket(buf)
-      local ctr,_ = pktCtr:getThroughput()   
-    end
-    pktCtr:update()
-    bufs:freeAll()
-  end
-  pktCtr:finalize()
 end
 
 function rxLatency(rxQueue)
@@ -97,13 +73,13 @@ function rxLatency(rxQueue)
     for i = 1, rx do
       local buf = bufs[i]
       pktCtr:countPacket(buf)
-      local ctr,_ = pktCtr:getThroughput() 
+      local ctr, _ = pktCtr:getThroughput() 
       -- sample packet to calculate latency
       if ctr % SAMPLE_RATE == 0 then
         local rxTs = mg:getCycles()
         local pkt = buf:getUdpPacket()
         local txTs = pkt.payload.uint64[0]
-        f:write(tostring(tonumber(rxTs - txTs) / tscFreq * 10^9) .. " " .. tostring(tonumber(rxTs)) .. "\n")
+        -- f:write(tostring(tonumber(rxTs - txTs) / tscFreq * 10^9) .. " " .. tostring(tonumber(rxTs)) .. "\n")
       end   
     end
     pktCtr:update()
