@@ -77,8 +77,8 @@ function rxLatency(rxQueue)
       -- sample packet to calculate latency
       if ctr % SAMPLE_RATE == 0 then
         local rxTs = mg:getCycles()
-        local pkt = buf:getUdpPacket()
-        local txTs = pkt.payload.uint64[0]
+        -- local pkt = buf:getUdpPacket()
+        -- local txTs = pkt.payload.uint64[0]
         -- f:write(tostring(tonumber(rxTs - txTs) / tscFreq * 10^9) .. " " .. tostring(tonumber(rxTs)) .. "\n")
       end   
     end
