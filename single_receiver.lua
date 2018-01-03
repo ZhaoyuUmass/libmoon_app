@@ -75,12 +75,12 @@ function rxLatency(rxQueue)
       pktCtr:countPacket(buf)
       local ctr, _ = pktCtr:getThroughput() 
       -- sample packet to calculate latency
-      if ctr % SAMPLE_RATE == 0 then
-        local rxTs = mg:getCycles()
+      -- if ctr % SAMPLE_RATE == 0 then
+        --local rxTs = mg:getCycles()
         -- local pkt = buf:getUdpPacket()
         -- local txTs = pkt.payload.uint64[0]
         -- f:write(tostring(tonumber(rxTs - txTs) / tscFreq * 10^9) .. " " .. tostring(tonumber(rxTs)) .. "\n")
-      end   
+      -- end   
     end
     pktCtr:update()
     bufs:freeAll()
