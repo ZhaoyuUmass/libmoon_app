@@ -69,7 +69,7 @@ function rxLatency(rxQueue)
   local f = io.open("rcvd.txt", "w+")
   
   while mg.running() do
-    local rx = rxQueue:tryRecv(bufs)
+    local rx = rxQueue:tryRecv(bufs, 100)
     for i = 1, rx do
       local buf = bufs[i]
       pktCtr:countPacket(buf)
