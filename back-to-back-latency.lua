@@ -4,7 +4,6 @@ local lm      = require "libmoon"
 local device  = require "device"
 local memory  = require "memory"
 local stats   = require "stats"
-local math    = require "math"
 
 local SRC_IP        = "10.0.0.1"
 local DST_IP        = "10.0.1.1"
@@ -32,7 +31,7 @@ function master(port1, port2, dstMac)
 end
 
 function back2backLatency(txDev, rxDev, dstMac)
-  local tscFreq = math.tofloat(lm.getCyclesFrequency())
+  local tscFreq = tonumber(lm.getCyclesFrequency()+0.1)
   print("tscFreq",tscFreq)
   
   local txQueue = txDev:getTxQueue(0)
