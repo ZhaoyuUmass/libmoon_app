@@ -4,6 +4,7 @@ local lm      = require "libmoon"
 local device  = require "device"
 local memory  = require "memory"
 local stats   = require "stats"
+local math    = require "math"
 
 local SRC_IP        = "10.0.0.1"
 local DST_IP        = "10.0.1.1"
