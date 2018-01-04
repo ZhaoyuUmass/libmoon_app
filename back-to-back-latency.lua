@@ -31,7 +31,9 @@ function master(port1, port2, dstMac)
 end
 
 function back2backLatency(txDev, rxDev, dstMac)
-   
+  local tscFreq = mg.getCyclesFrequency()
+  print("tscFreq",tscFreq)
+  
   local txQueue = txDev:getTxQueue(0)
   local rxQueue = rxDev:getRxQueue(0)
   
@@ -75,7 +77,7 @@ function back2backLatency(txDev, rxDev, dstMac)
       local pkt = buf_rcvd[i]:getUdpPacket()
       
       local elapsed = lm:getCycles() - begin
-      buf_rcvd[i]:dump()
+      -- buf_rcvd[i]:dump()
       print("latency:",elapsed)
     end  
     j = j+1  
