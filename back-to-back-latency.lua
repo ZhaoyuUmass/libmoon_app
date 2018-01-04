@@ -50,7 +50,7 @@ function back2backLatency(dev, dstMac)
   
   local buf_sent = mempool:bufArray(1)
   local buf_rcvd = memory.bufArray()
-  local ctr = stats:newDevTxCounter("Load Traffic", dev, "plain")
+  -- local ctr = stats:newDevTxCounter("Load Traffic", dev, "plain")
   
   local j = 0
   while lm.running() do
@@ -60,7 +60,7 @@ function back2backLatency(dev, dstMac)
       print(i)
       buf:dump()    
     end
-    txQueue:sendSingle(buf_sent[1])
+    txQueue:send(buf_sent)
     print("packet ", j," has been sent")
     
     
