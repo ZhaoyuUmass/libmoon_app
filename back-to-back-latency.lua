@@ -74,7 +74,7 @@ function back2backLatency(txDev, rxDev, dstMac)
     -- wait for packet: no time out until packet returns
     local rx = rxQueue:tryRecv(buf_rcvd)
     local elapsed = lm:getCycles() - begin
-    print("latency:",elapsed)
+    print("latency:",elapsed/tscFreq)
     buf_rcvd:free(rx)
     j = j+1  
   end
