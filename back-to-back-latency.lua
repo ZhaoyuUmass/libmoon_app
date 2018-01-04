@@ -31,7 +31,7 @@ function master(port1, port2, dstMac)
 end
 
 function back2backLatency(txDev, rxDev, dstMac)
-  local tscFreq = tonumber(lm.getCyclesFrequency()/1.0)
+  local tscFreq = math.tofloat(lm.getCyclesFrequency())
   print("tscFreq",tscFreq)
   
   local txQueue = txDev:getTxQueue(0)
