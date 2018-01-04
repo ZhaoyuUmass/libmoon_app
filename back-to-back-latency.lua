@@ -5,7 +5,11 @@ local device  = require "device"
 local memory  = require "memory"
 local stats  = require "stats"
 
-local PKT_SIZE = 60
+local SRC_IP        = "10.0.0.1"
+local DST_IP        = "10.0.1.1"
+local SRC_PORT      = 1234 -- actual port will be SRC_PORT_BASE * random(NUM_FLOWS)
+local DST_PORT      = 2345
+local PKT_SIZE      = 60
 
 function master(port, dstMac)
   print(port,dstMac)
@@ -35,6 +39,10 @@ function back2backLatency(dev, dstMac)
       -- fields not explicitly set here are initialized to reasonable defaults
       ethSrc = queue, -- MAC of the tx device
       ethDst = dstMac,
+      ip4Src = SRC_IP,
+      ip4Dst = DST_IP,
+      udpSrc = SRC_PORT,
+      udpDst = DST_PORT,
       pktLength = PKT_SIZE
     }
   end)
