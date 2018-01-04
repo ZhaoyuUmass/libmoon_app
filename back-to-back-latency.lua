@@ -37,7 +37,7 @@ function back2backLatency(dev, dstMac)
   local mempool = memory.createMemPool(function(buf)
     buf:getUdpPacket():fill{
       -- fields not explicitly set here are initialized to reasonable defaults
-      ethSrc = queue, -- MAC of the tx device
+      ethSrc = txQueue, -- MAC of the tx device
       ethDst = dstMac,
       ip4Src = SRC_IP,
       ip4Dst = DST_IP,
