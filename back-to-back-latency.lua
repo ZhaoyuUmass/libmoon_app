@@ -58,7 +58,6 @@ function back2backLatency(dev, dstMac)
     -- send a packet
     buf_sent:alloc(PKT_SIZE)
     for i,buf in ipairs(buf_sent) do
-      print(i)
       -- buf:dump()    
     end
     buf_sent:offloadUdpChecksums()
@@ -68,7 +67,7 @@ function back2backLatency(dev, dstMac)
     
     
     -- wait for packet: no time out until packet returns
-    local rx = rxQueue:tryRecv(buf_rcvd, 100)
+    local rx = rxQueue:tryRecv(buf_rcvd)
     for i = 1, rx do
       local pkt = buf_rcvd[i]:getUdpPacket()
       
