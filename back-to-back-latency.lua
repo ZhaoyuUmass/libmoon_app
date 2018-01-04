@@ -75,10 +75,7 @@ function back2backLatency(txDev, rxDev, dstMac)
     local rx = rxQueue:tryRecv(buf_rcvd)
     local elapsed = lm:getCycles() - begin
     print("latency:",elapsed)
-    for i = 1, rx do
-      -- local pkt = buf_rcvd[i]:getUdpPacket()      
-      -- buf_rcvd[i]:dump()      
-    end  
+    buf_rcvd:free(rx)
     j = j+1  
   end
   
