@@ -58,9 +58,11 @@ function back2backLatency(dev, dstMac)
     buf_sent:alloc(1)
     for i,buf in ipairs(buf_sent) do
       print(i)
+      txQueue:sendSingle(buf_sent)
+      print("packet ",i," has been sent")
     end
-    txQueue:sendSingle(buf_sent)
-    print("packet ",j," has been sent")
+    
+    
     
     -- wait for packet: no time out until packet returns
     local rx = rxQueue:tryRecv(buf_rcvd)
