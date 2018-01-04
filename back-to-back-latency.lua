@@ -3,7 +3,7 @@
 local lm      = require "libmoon"
 local device  = require "device"
 local memory  = require "memory"
-local stats  = require "stats"
+local stats   = require "stats"
 
 local SRC_IP        = "10.0.0.1"
 local DST_IP        = "10.0.1.1"
@@ -55,12 +55,11 @@ function back2backLatency(dev, dstMac)
   local j = 0
   while lm.running() do
     -- send a packet
-    buf_sent:alloc(1)
+    buf_sent:alloc(60)
     for i,buf in ipairs(buf_sent) do
       print(i)
-      buf:getUdpPacket()
     end
-    txQueue:send(buf_sent)
+    txQueue:sendSingle(buf_sent)
     print("packet ",j," has been sent")
     
     -- wait for packet: no time out until packet returns
