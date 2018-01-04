@@ -53,6 +53,7 @@ function back2backLatency(dev, dstMac)
   -- local ctr = stats:newDevTxCounter("Load Traffic", dev, "plain")
   
   local j = 0
+  local begin = 0
   while lm.running() do
     -- send a packet
     buf_sent:alloc(PKT_SIZE)
@@ -61,15 +62,19 @@ function back2backLatency(dev, dstMac)
       buf:dump()    
     end
     buf_sent:offloadUdpChecksums()
+    begin = lm:getCycles()
     txQueue:send(buf_sent)
     print("packet ", j," has been sent")
     
     
     -- wait for packet: no time out until packet returns
-    local rx = rxQueue:tryRecv(buf_rcvd)
+    local rx = rxQueue:tryRecv(buf_rcvd, 100)
     for i = 1, rx do
       local pkt = buf_rcvd[i]:getUdpPacket()
-      print("received",pkt)
+      
+      local elapsed = lm:getCycles() - begin
+      buf_rcvd[i]:dump()
+      print("latency:",elapsed)
     end  
     j = j+1  
   end
