@@ -11,26 +11,29 @@ local SRC_PORT      = 1234 -- actual port will be SRC_PORT_BASE * random(NUM_FLO
 local DST_PORT      = 2345
 local PKT_SIZE      = 60
 
-function master(port, dstMac)
-  print(port,dstMac)
-  if port == nil or dstMac == nil then
-    print("Usage: ./Moongen path-to-libmoon_app/back-to-back-latency.lua port dstMac")
+function master(port1, port2, dstMac)
+  print(port1,dstMac)
+  if port1 == nil or port2 == nil or dstMac == nil then
+    print("Usage: ./Moongen path-to-libmoon_app/back-to-back-latency.lua port1 port2 dstMac")
   end
-  local dev = device.config{
-      port = tonumber(port),
-      txQueues = 1,
-      rxQueues = 1
+  local txDev = device.config{
+      port = tonumber(port1),
+      txQueues = 1
+  }
+  local rxDev = device.config{
+      port = tonumber(port2),
+      rxQueue = 1
   }
   print("Ready to start subtask...")
-  lm.startTask("back2backLatency", dev, dstMac)
+  lm.startTask("back2backLatency", txDev, rxDev, dstMac)
   
   lm.waitForTasks()
 end
 
-function back2backLatency(dev, dstMac)
+function back2backLatency(txDev, rxDev, dstMac)
    
-  local txQueue = dev:getTxQueue(0)
-  local rxQueue = dev:getRxQueue(0)
+  local txQueue = txDev:getTxQueue(0)
+  local rxQueue = rxDev:getRxQueue(0)
   
   print("Start sub task with txQueue",txQueue,",rxQueue",rxQueue," and mac ",dstMac)
   -- memory pool with default values for all packets, this is our archetype
