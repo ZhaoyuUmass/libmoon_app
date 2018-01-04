@@ -59,7 +59,7 @@ function back2backLatency(dev, dstMac)
     for i,buf in ipairs(buf_sent) do
       print(i)      
     end
-    txQueue:send(buf_sent)
+    txQueue:sendAll(buf_sent)
     print("packet ", j," has been sent")
     
     
