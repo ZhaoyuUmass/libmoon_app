@@ -66,7 +66,7 @@ function back2backLatency(dev, dstMac)
     
     
     -- wait for packet: no time out until packet returns
-    local rx = rxQueue:tryRecv(buf_rcvd, 100)
+    local rx = rxQueue:tryRecv(buf_rcvd)
     for i = 1, rx do
       local pkt = buf_rcvd[i]:getUdpPacket()
       print("received",pkt)
