@@ -59,12 +59,12 @@ function back2backLatency(dev, dstMac)
     buf_sent:alloc(PKT_SIZE)
     for i,buf in ipairs(buf_sent) do
       print(i)
-      buf:dump()    
+      -- buf:dump()    
     end
     buf_sent:offloadUdpChecksums()
     begin = lm:getCycles()
     txQueue:send(buf_sent)
-    print("packet ", j," has been sent")
+    -- print("packet ", j," has been sent")
     
     
     -- wait for packet: no time out until packet returns
