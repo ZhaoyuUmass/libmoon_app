@@ -55,11 +55,12 @@ function back2backLatency(dev, dstMac)
   local j = 0
   while lm.running() do
     -- send a packet
-    buf_sent:alloc(1)
+    buf_sent:alloc(PKT_LEN)
     for i,buf in ipairs(buf_sent) do
       print(i)
       buf:dump()    
     end
+    buf_sent:offloadUdpChecksums()
     txQueue:send(buf_sent)
     print("packet ", j," has been sent")
     
