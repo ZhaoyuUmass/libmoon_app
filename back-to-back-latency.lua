@@ -55,7 +55,7 @@ function back2backLatency(dev, dstMac)
   local j = 0
   while lm.running() do
     -- send a packet
-    buf_sent:alloc(PKT_LEN)
+    buf_sent:alloc(PKT_SIZE)
     for i,buf in ipairs(buf_sent) do
       print(i)
       buf:dump()    
