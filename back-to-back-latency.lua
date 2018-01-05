@@ -66,14 +66,14 @@ function back2backLatency(txDev, rxDev, dstMac)
       -- buf:dump()    
     end
     buf_sent:offloadUdpChecksums()
-    begin = lm:getCycles()
+    begin = lm:getTime()
     txQueue:send(buf_sent)
     -- print("packet ", j," has been sent")
     print("send:", (lm:getCycles() - begin ) )
     
     -- wait for packet: no time out until packet returns
     local rx = rxQueue:tryRecv(buf_rcvd)
-    local elapsed = lm:getCycles() - begin 
+    local elapsed = lm:getTime() - begin 
     print("latency:", elapsed )
     buf_rcvd:free(rx)
     j = j+1  
