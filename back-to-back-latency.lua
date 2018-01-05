@@ -12,20 +12,31 @@ local DST_PORT      = 2345
 local PKT_SIZE      = 60
 
 function master(port1, port2, dstMac)
-  print(port1,dstMac)
+  print(port1, port2, dstMac)
   if port1 == nil or port2 == nil or dstMac == nil then
     print("Usage: ./Moongen path-to-libmoon_app/back-to-back-latency.lua port1 port2 dstMac")
   end
-  local txDev = device.config{
+  
+  if port1 == port2 then
+    local dev = device.config{
       port = tonumber(port1),
-      txQueues = 1
-  }
-  local rxDev = device.config{
-      port = tonumber(port2),
-      rxQueue = 1
-  }
-  print("Ready to start subtask...")
-  lm.startTask("back2backLatency", txDev, rxDev, dstMac)
+      txQueues = 1,
+      rxQueues = 1
+    }
+    lm.startTask("back2backlatency", dev, dev, dstMac)
+  else
+    -- If 2 ports are different, use 2 different devices. This is used for SR-IOV setup
+    local txDev = device.config{
+        port = tonumber(port1),
+        txQueues = 1
+    }
+    local rxDev = device.config{
+        port = tonumber(port2),
+        rxQueue = 1
+    }
+    print("Ready to start subtask...")
+    lm.startTask("back2backLatency", txDev, rxDev, dstMac)
+  end
   
   lm.waitForTasks()
 end
@@ -59,6 +70,7 @@ function back2backLatency(txDev, rxDev, dstMac)
   
   local j = 0
   local begin = 0
+  local tk = 0
   while lm.running() do
     -- send a packet
     buf_sent:alloc(PKT_SIZE)
@@ -66,15 +78,17 @@ function back2backLatency(txDev, rxDev, dstMac)
       -- buf:dump()    
     end
     buf_sent:offloadUdpChecksums()
-    begin = lm:getTime()
+    
+    tk = lm:getTime()
+    begin = lm:getCycles()
     txQueue:send(buf_sent)
     -- print("packet ", j," has been sent")
     print("send:", (lm:getCycles() - begin ) )
     
     -- wait for packet: no time out until packet returns
     local rx = rxQueue:tryRecv(buf_rcvd)
-    local elapsed = lm:getTime() - begin 
-    print("latency:", elapsed )
+    local elapsed = lm:getCycles() - begin 
+    print("latency:", elapsed, (lm:getTime() - tk) )
     buf_rcvd:free(rx)
     j = j+1  
   end
