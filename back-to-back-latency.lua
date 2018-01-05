@@ -18,12 +18,13 @@ function master(port1, port2, dstMac)
   end
   
   if port1 == port2 then
+    -- This is used for bare-metal setup
     local dev = device.config{
       port = tonumber(port1),
       txQueues = 1,
       rxQueues = 1
     }
-    lm.startTask("back2backlatency", dev, dev, dstMac)
+    lm.startTask("back2backLatency", dev, dev, dstMac)
   else
     -- If 2 ports are different, use 2 different devices. This is used for SR-IOV setup
     local txDev = device.config{
