@@ -11,7 +11,8 @@ local SRC_PORT      = 1234 -- actual port will be SRC_PORT_BASE * random(NUM_FLO
 local DST_PORT      = 2345
 local PKT_SIZE      = 60
 
-function master(port1, port2, dstMac)
+function master(port1, port2, dstMac, numReqs)
+  
   print(port1, port2, dstMac)
   if port1 == nil or port2 == nil or dstMac == nil then
     print("Usage: ./Moongen path-to-libmoon_app/back-to-back-latency.lua port1 port2 dstMac")
@@ -24,7 +25,7 @@ function master(port1, port2, dstMac)
       txQueues = 1,
       rxQueues = 1
     }
-    lm.startTask("back2backLatency", dev, dev, dstMac)
+    lm.startTask("back2backLatency", dev, dev, dstMac, tonumber(numReqs))
   else
     -- If 2 ports are different, use 2 different devices. This is used for SR-IOV setup
     local txDev = device.config{
@@ -36,13 +37,13 @@ function master(port1, port2, dstMac)
         rxQueue = 1
     }
     print("Ready to start subtask...")
-    lm.startTask("back2backLatency", txDev, rxDev, dstMac)
+    lm.startTask("back2backLatency", txDev, rxDev, dstMac, tonumber(numReqs))
   end
   
   lm.waitForTasks()
 end
 
-function back2backLatency(txDev, rxDev, dstMac)
+function back2backLatency(txDev, rxDev, dstMac, numReqs)
   local tscFreq = lm.getCyclesFrequency()
   print("tscFreq",tscFreq)
   
@@ -72,7 +73,7 @@ function back2backLatency(txDev, rxDev, dstMac)
   local j = 0
   local begin = 0
   local tk = 0
-  while lm.running() and j < 10000 do
+  while lm.running() and j < numReqs do
     -- send a packet
     buf_sent:alloc(PKT_SIZE)
     for i,buf in ipairs(buf_sent) do
