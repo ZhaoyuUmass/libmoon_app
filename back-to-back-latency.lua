@@ -72,7 +72,7 @@ function back2backLatency(txDev, rxDev, dstMac)
   local j = 0
   local begin = 0
   local tk = 0
-  while lm.running() do
+  while lm.running() and j < 10000 do
     -- send a packet
     buf_sent:alloc(PKT_SIZE)
     for i,buf in ipairs(buf_sent) do
