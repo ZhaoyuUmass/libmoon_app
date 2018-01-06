@@ -7,11 +7,11 @@ local stats   = require "stats"
 
 local SRC_IP        = "10.0.0.1"
 local DST_IP        = "10.0.1.1"
-local SRC_PORT      = 1234 -- actual port will be SRC_PORT_BASE * random(NUM_FLOWS)
-local DST_PORT      = 2345
+local SRC_PORT_BASE = 1234 -- actual port will be SRC_PORT_BASE * random(NUM_FLOWS)
+local DST_PORT_BASE = 2345
 local PKT_SIZE      = 60
 
-function master(port1, port2, dstMac, numReqs)
+function master(port1, port2, dstMac, numReqs, random )
   
   print(port1, port2, dstMac)
   if port1 == nil or port2 == nil or dstMac == nil then
@@ -25,7 +25,7 @@ function master(port1, port2, dstMac, numReqs)
       txQueues = 1,
       rxQueues = 1
     }
-    lm.startTask("back2backLatency", dev, dev, dstMac, tonumber(numReqs))
+    lm.startTask("back2backLatency", dev, dev, dstMac, tonumber(numReqs), tonumber(random) )
   else
     -- If 2 ports are different, use 2 different devices. This is used for SR-IOV setup
     local txDev = device.config{
@@ -37,13 +37,13 @@ function master(port1, port2, dstMac, numReqs)
         rxQueue = 1
     }
     print("Ready to start subtask...")
-    lm.startTask("back2backLatency", txDev, rxDev, dstMac, tonumber(numReqs))
+    lm.startTask("back2backLatency", txDev, rxDev, dstMac, tonumber(numReqs), tonumber(random) )
   end
   
   lm.waitForTasks()
 end
 
-function back2backLatency(txDev, rxDev, dstMac, numReqs)
+function back2backLatency(txDev, rxDev, dstMac, numReqs, random)
   local tscFreq = lm.getCyclesFrequency()
   print("tscFreq",tscFreq)
   
@@ -70,6 +70,9 @@ function back2backLatency(txDev, rxDev, dstMac, numReqs)
   local buf_rcvd = memory.bufArray()
   -- local ctr = stats:newDevTxCounter("Load Traffic", dev, "plain")
   
+  p1 = 0
+  p2 = 0
+  
   local j = 0
   local begin = 0
   local tk = 0
@@ -77,6 +80,11 @@ function back2backLatency(txDev, rxDev, dstMac, numReqs)
     -- send a packet
     buf_sent:alloc(PKT_SIZE)
     for i,buf in ipairs(buf_sent) do
+      if random then
+        pkt = buf:getUdpPacket()
+        pkt.udp:setDstPort(DST_PORT_BASE+p1)
+        pkt.udp:setSrcPort(DST_PORT_BASE+p2)
+      end
       -- buf:dump()    
     end
     buf_sent:offloadUdpChecksums()
@@ -91,7 +99,11 @@ function back2backLatency(txDev, rxDev, dstMac, numReqs)
     local elapsed = lm:getCycles() - begin 
     print("latency:", elapsed, (lm:getTime() - tk) )
     buf_rcvd:free(rx)
-    j = j+1  
-  end
-  
+    j = j+1
+    p1 = p1+1    
+    if p1 == 1000 then 
+      p1 = 0
+      p2 = p2+1
+    end
+  end  
 end
