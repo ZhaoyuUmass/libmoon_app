@@ -59,8 +59,8 @@ function back2backLatency(txDev, rxDev, dstMac, numReqs, random)
       ethDst = dstMac,
       ip4Src = SRC_IP,
       ip4Dst = DST_IP,
-      udpSrc = SRC_PORT,
-      udpDst = DST_PORT,
+      udpSrc = SRC_PORT_BASE,
+      udpDst = DST_PORT_BASE,
       pktLength = PKT_SIZE
     }
   end)
