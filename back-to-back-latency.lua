@@ -80,7 +80,7 @@ function back2backLatency(txDev, rxDev, dstMac, numReqs, random)
     -- send a packet
     buf_sent:alloc(PKT_SIZE)
     for i,buf in ipairs(buf_sent) do
-      if random then
+      if random == 0 then
         pkt = buf:getUdpPacket()
         pkt.udp:setSrcPort(SRC_PORT_BASE+p1)
         pkt.udp:setDstPort(DST_PORT_BASE+p2)        
@@ -100,7 +100,7 @@ function back2backLatency(txDev, rxDev, dstMac, numReqs, random)
     print("latency:", elapsed, (lm:getTime() - tk) )
     buf_rcvd:free(rx)
     j = j+1
-    if random then
+    if random == 0 then
       p1 = p1+1    
       if p1 == 1000 then 
         p1 = 0
