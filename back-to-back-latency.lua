@@ -85,7 +85,7 @@ function back2backLatency(txDev, rxDev, dstMac, numReqs, random)
         pkt.udp:setSrcPort(SRC_PORT_BASE+p1)
         pkt.udp:setDstPort(DST_PORT_BASE+p2)        
       end
-      buf:dump()    
+      -- buf:dump()    
     end
     buf_sent:offloadUdpChecksums()
     
