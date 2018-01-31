@@ -86,7 +86,7 @@ def get_cpu_mask(index):
 def get_mac_suffix(vf_index):
     suffix = None
     left = vf_index%NUM_MAC_PER_MIDDLE
-    if left < 10:
+    if left < 16:
 	suffix = '0'+str(hex(left))[-1]
     else:
         suffix = str(hex(left))[-2:]
@@ -294,4 +294,5 @@ def main():
     print "All anolis threads have been joined!"
 
 if __name__ == '__main__':
-    main()
+    #main()
+    print get_mac(int(sys.argv[1]))
