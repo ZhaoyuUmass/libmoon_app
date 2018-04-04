@@ -12,10 +12,10 @@ local limiter = require "software-ratecontrol"
 
 
 -- set addresses here
-local DST_MAC       = nil -- resolved via ARP on GW_IP or DST_IP, can be overriden with a string here
+local DST_MAC       = "3c:fd:fe:a6:01:b9"
 local PKT_LEN       = 60  -- max size: 1496
-local SRC_IP        = "10.0.0.1"
-local DST_IP        = "10.0.1.1"
+local SRC_IP        = "192.168.50.1"
+local DST_IP        = "192.168.51.1"
 local SRC_PORT_BASE = 1234 -- actual port will be SRC_PORT_BASE * random(NUM_FLOWS)
 local DST_PORT_BASE = 2345
 
@@ -166,7 +166,7 @@ function txSlave(queue, dstMac, rate, numFlows, idx)
   end
   
   for i = 1, TOTAL_IPS do
-    SRC_IP_SET[#SRC_IP_SET+1] = convert_ip_2_int(random_ipv4())
+    SRC_IP_SET[#SRC_IP_SET+1] = convert_ip_2_int(SRC_IP)+i
   end
 
   print("SRC_IP_SET:")
