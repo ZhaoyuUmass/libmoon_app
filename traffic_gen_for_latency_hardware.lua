@@ -110,25 +110,20 @@ function master(args, ...)
  
   -- start tx tasks
   for i,dev in pairs(args.dev) do 
-    if i == args.rx+1 then
-      print(">>>>>>> start rx task on ", i)
-      lm.startTask("rxLatency", dev:getRxQueue(0))
-    else
-      print(">>>>>>> start tx task on ", i)
-      -- initialize a local queue: local is very important here
-      local queue = dev:getTxQueue(0)
-      -- the software rate limiter always works, but it can only scale up to 5.55Mpps (64b packet) with Intel 82599 NIC on EC2
-      -- local rateLimiter = nil
-      -- use rate limiter no matter what
-      -- rateLimiter = limiter:new(queue, PATTERN, 1 / args.load * 1000)
+    print(">>>>>>> start tx task on ", i)
+    -- initialize a local queue: local is very important here
+    local queue = dev:getTxQueue(0)
+    -- the software rate limiter always works, but it can only scale up to 5.55Mpps (64b packet) with Intel 82599 NIC on EC2
+    -- local rateLimiter = nil
+    -- use rate limiter no matter what
+    -- rateLimiter = limiter:new(queue, PATTERN, 1 / args.load * 1000)
 
-      if DST_MAC then
-        lm.startTask("txSlave", queue, DST_MAC, args.load, args.flows, i) 
-      elseif args.mac then
-        lm.startTask("txSlave", queue, args.mac, args.load, args.flows, i)
-      else
-        print("no mac specified")
-      end 
+    if DST_MAC then
+      lm.startTask("txSlave", queue, DST_MAC, args.load, args.flows, i) 
+    elseif args.mac then
+      lm.startTask("txSlave", queue, args.mac, args.load, args.flows, i)
+    else
+      print("no mac specified")
     end      
   end
     
