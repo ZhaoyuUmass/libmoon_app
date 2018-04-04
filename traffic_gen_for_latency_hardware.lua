@@ -91,28 +91,20 @@ function master(args, ...)
   -- configure devices, we only need a single txQueue to send traffic and another port to send latency traffic
   -- Note: VF only supports 1 tx and rx queue on agave machines, that's why we hard code the number to 1 here
   for i,dev in pairs(args.dev) do
-    if i == args.rx+1 then
-      local dev = device.config{
-        port = dev,
-        txQueues = 1
-      }
-      args.dev[i] = dev
-    else
-      local dev = device.config{
-        port = dev,
-        rxQueue = 1
-      }
-      args.dev[i] = dev
-    end
+    local dev = device.config{
+      port = dev,
+      txQueues = 5
+    }
+    args.dev[i] = dev
   end
 
   device.waitForLinks()  
  
   -- start tx tasks
-  for i,dev in pairs(args.dev) do 
+  for i=1,5 do 
     print(">>>>>>> start tx task on ", i)
     -- initialize a local queue: local is very important here
-    local queue = dev:getTxQueue(0)
+    local queue = dev:getTxQueue(i)
     -- the software rate limiter always works, but it can only scale up to 5.55Mpps (64b packet) with Intel 82599 NIC on EC2
     -- local rateLimiter = nil
     -- use rate limiter no matter what
