@@ -5,8 +5,8 @@ local device  = require "device"
 local memory  = require "memory"
 local stats   = require "stats"
 
-local SRC_IP        = "10.0.0.1"
-local DST_IP        = "10.0.1.1"
+local SRC_IP        = "192.168.50.1"
+local DST_IP        = "192.168.51.1"
 local SRC_PORT_BASE = 1234 -- actual port will be SRC_PORT_BASE * random(NUM_FLOWS)
 local DST_PORT_BASE = 2345
 local PKT_SIZE      = 60
