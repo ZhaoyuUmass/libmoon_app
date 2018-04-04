@@ -14,8 +14,8 @@ local limiter = require "software-ratecontrol"
 -- set addresses here
 local DST_MAC       = "de:ad:be:02:02:00" -- resolved via ARP on GW_IP or DST_IP, can be overriden with a string here
 local PKT_LEN       = 60  -- max size: 1496
-local SRC_IP        = "10.0.0.1"
-local DST_IP        = "10.0.1.1"
+local SRC_IP        = "192.168.50.1"
+local DST_IP        = "192.168.51.1"
 local SRC_PORT_BASE = 1234 -- actual port will be SRC_PORT_BASE * random(NUM_FLOWS)
 local DST_PORT_BASE = 2345
 
@@ -53,6 +53,7 @@ local function convert_ip_2_int(ip)
   local o1,o2,o3,o4 = ip:match("(%d+)%.(%d+)%.(%d+)%.(%d+)")
   return 2^24*o1 + 2^16*o2 + 2^8*o3 + o4
 end
+
 
 -- the configure function is called on startup with a pre-initialized command line parser
 function configure(parser)
@@ -144,7 +145,7 @@ function txSlave(queue, dstMac, numFlows, idx)
   
   math.randomseed(idx)
   for i = 1, TOTAL_IPS do
-    local ip_addr = convert_ip_2_int(random_ipv4())
+    local ip_addr = convert_ip_2_int(DST_IP)
     SRC_IP_SET[#SRC_IP_SET+1] = ip_addr
   end
 
@@ -189,6 +190,7 @@ function txSlave(queue, dstMac, numFlows, idx)
       -- send out all packets and frees old bufs that have been sent
       queue:send(bufs)
       pktCtr:update()
+      
     end
   elseif TRAFFIC_GEN_PATTERN == "random" then
     while lm.running() do -- check if Ctrl+c was pressed
@@ -220,37 +222,4 @@ function txSlave(queue, dstMac, numFlows, idx)
   
   lm.sleepMillis(500)
   lm.stop()
-end
-
-
-function rxLatency(rxQueue)
-  local tscFreq = mg.getCyclesFrequency()
-  print("tscFreq",tscFreq)
-  
-  -- use whatever filter appropriate for your packet type
-  -- queue:filterUdpTimestamps()
-  local pktCtr = stats:newPktRxCounter("Packets received", "plain")
-  local bufs = memory.bufArray()
-  -- Dump the rxTs and txTs to a local file 
-  local f = io.open("rcvd.txt", "w+")
-  
-  while mg.running() do
-    local rx = rxQueue:tryRecv(bufs)
-    for i = 1, rx do
-      local buf = bufs[i]
-      pktCtr:countPacket(buf)
-      local ctr,_ = pktCtr:getThroughput() 
-      -- sample packet to calculate latency
-      if ctr % SAMPLE_RATE == 0 then
-        local rxTs = mg:getCycles()
-        local pkt = buf:getUdpPacket()
-        local txTs = pkt.payload.uint64[0]
-        f:write(tostring(tonumber(rxTs - txTs) / tscFreq * 10^9) .. " " .. tostring(tonumber(rxTs)) .. "\n")
-      end   
-    end
-    pktCtr:update()
-    bufs:freeAll()
-  end
-  pktCtr:finalize()   
-  f:close() 
 end
