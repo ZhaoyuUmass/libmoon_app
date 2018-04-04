@@ -145,7 +145,7 @@ function txSlave(queue, dstMac, numFlows, idx)
   
   math.randomseed(idx)
   for i = 1, TOTAL_IPS do
-    local ip_addr = convert_ip_2_int(DST_IP)
+    local ip_addr = convert_ip_2_int(DST_IP)+i
     SRC_IP_SET[#SRC_IP_SET+1] = ip_addr
   end
 
